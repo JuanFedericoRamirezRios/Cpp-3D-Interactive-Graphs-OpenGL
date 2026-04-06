@@ -1,0 +1,6 @@
+﻿  source.cpp
+  Generating code
+  Previous IPDB and IOBJ mismatch, fall back to full compilation.
+  All 2 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  Cpp-3D-Interactive-Graphs-OpenGL.vcxproj -> D:\pCloud\pCloud\GitHubRepositories\Cpp-3D-Interactive-Graphs-OpenGL\x64\Release\Cpp-3D-Interactive-Graphs-OpenGL.exe
