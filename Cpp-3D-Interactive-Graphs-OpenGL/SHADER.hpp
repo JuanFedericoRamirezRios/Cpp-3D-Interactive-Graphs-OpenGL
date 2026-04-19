@@ -22,7 +22,7 @@ private:
 		}
 
 		file.seekg(0, std::ios::end); //Points to the final, sets the get pointer 0 bytes
-		textFileShader.resize((unsigned int)file.tellg()); // tellg() -> curretn position of get pointer
+		textFileShader.resize((unsigned int)file.tellg()); // tellg() -> current position of get pointer
 
 		file.seekg(0, std::ios::beg); //Points to the beginning, sets the get pointer 0 bytes.
 		file.read(&textFileShader[0], textFileShader.size());

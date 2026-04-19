@@ -134,7 +134,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CAMERA.hpp" />
+    <ClInclude Include="LIGHT_RENDER.hpp" />
     <ClInclude Include="MESH.hpp" />
+    <ClInclude Include="SHADER.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="OpenGL_pipeline.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

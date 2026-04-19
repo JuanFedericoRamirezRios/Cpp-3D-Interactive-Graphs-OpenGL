@@ -28,13 +28,13 @@ public:
 	~CAMERA() {
 
 	}
-	mat4 getViewMatrix() {
+	mat4 GetViewMatrix() {
 		return viewMatrix;
 	}
-	mat4 getProjectionMatrix() {
+	mat4 GetProjectionMatrix() {
 		return projectionMatrix;
 	}
-	vec3 getPosition() {
+	vec3 GetPosition() {
 		return pos;
 	}
 };

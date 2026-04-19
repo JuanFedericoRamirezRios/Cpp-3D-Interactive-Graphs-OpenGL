@@ -7,7 +7,18 @@ GLM 1.0.3
 #include <GL/glew.h> // OpenGL Extension Wrangler Library: OpenGL header files <- GPU.
 #include <GLFW/glfw3.h> // Graphics Library Framework: Windows, inputs, events, etc.
 
+#include "SHADER.hpp"
+#include "CAMERA.hpp"
+#include "LIGHT_RENDER.hpp"
+
+CAMERA* camera;
+LIGHT_RENDER* lighRender;
+
+void InitGame();
+
 void RenderScene(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
+
+
 
 int main(int argc, char** argv) {
 	glfwInit();
@@ -26,6 +37,13 @@ int main(int argc, char** argv) {
 	glfwTerminate();
 
 	return 0;
+
+}
+void InitGame() {
+	glEnable(GL_DEPTH_TEST); // GL_DEPTH_TEST: Depth texting -> only the pixels in the front are drawn
+
+	SHADER shader;
+	GLuint flatShaderProgram = shader.CreateProgram("Assets/Shaders/FLAT_MODEL.vs",	"Assets/Shaders/FLAT_MODEL.fs");
 
 }
 void RenderScene(GLclampf red = 0.0, GLclampf green = 0.0, GLclampf blue = 0.0, GLclampf alpha = 1.0) {
