@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 Standard C++ 20
 GLEW 2.3.1

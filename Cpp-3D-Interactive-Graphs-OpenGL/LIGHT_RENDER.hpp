@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 Standard C++ 20
 GLEW 2.3.1
@@ -106,7 +108,7 @@ public:
 		glUseProgram(program);
 
 		// ******* Set the Model matrix **********
-		mat4 model = mat4(1.0f); // model = world x (position of each object)
+		mat4 model = mat4(1.0f); // model = World matrix = Identity matrix
 		model = translate(mat4(1.0), position); // translate the object to the required position
 
 		//glUseProgram(program);

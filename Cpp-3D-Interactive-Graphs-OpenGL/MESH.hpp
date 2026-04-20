@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 Standard C++ 20
 GLEW 2.3.1
@@ -19,7 +21,7 @@ struct VERTEX {
 	vec3 pos;
 	vec3 normal; // -> lighting.
 	vec4 color;
-	vec2 textureCoord; // -> texture of objects.
+	vec2 textureCoord; // -> texture of objects: U and V coordinates?
 };
 
 class MESH {
