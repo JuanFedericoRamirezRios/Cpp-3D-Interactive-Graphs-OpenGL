@@ -47,7 +47,7 @@ public:
 		case Cube:
 			MESH::LoadCubeVertices(vertices, indices);
 			break;
-		case Sph:
+		case Sphere:
 			MESH::LoadSphVertices(vertices, indices);
 			break;
 		}
@@ -135,7 +135,7 @@ public:
 		glBindVertexArray(vao);
 		glDrawElements(
 			GL_TRIANGLES, // Mode: GL_LINES | GL_TRIANGLES
-			indices.size(), // number of elements or the number of indices
+			(GLsizei)indices.size(), // number of elements or the number of indices
 			GL_UNSIGNED_INT, //  type of index data
 			0 // location where the indices are stored
 		);

@@ -15,7 +15,7 @@ uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model; // model = world
 
-out vec3 outColor; // sent out of the vertex shader
+out vec4 outColor; // sent out of the vertex shader
 
 void main(void) {
 	gl_Position = projection * view * model * vec4(Position, 1.0); // GLSL intrinsic variable: Final position.

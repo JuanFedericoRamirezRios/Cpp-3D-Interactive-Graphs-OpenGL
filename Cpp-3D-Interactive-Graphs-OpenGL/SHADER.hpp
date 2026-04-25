@@ -36,7 +36,7 @@ private:
 	GLuint CreateShader(GLenum shaderType, std::string textFileShader, const char* nameTypeShader) { // shaderType: In this case: vertexShader | fragmentShader
 		GLuint shader = glCreateShader(shaderType);
 		const char* charsFileShader = textFileShader.c_str(); // Conver to char*
-		const int sizeFileShader = textFileShader.size();
+		const int sizeFileShader = (int)textFileShader.size();
 		glShaderSource(shader, 1, &charsFileShader, &sizeFileShader); // charsFileShader -> shader, 1: One string.
 		glCompileShader(shader);
 

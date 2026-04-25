@@ -15,7 +15,7 @@ enum MESH_TYPE {
 	Triangle = 0,
 	Quad = 1,
 	Cube = 2,
-	Sph = 3
+	Sphere = 3
 };
 struct VERTEX {
 	vec3 pos;
@@ -159,13 +159,13 @@ public:
 		float radius = 1.0f;
 
 		for (float latNumber = 0; latNumber <= latitudeBands; latNumber++) {
-			float theta = latNumber * 3.14 / latitudeBands;
+			float theta = latNumber * 3.14f / latitudeBands;
 			float sinTheta = sin(theta);
 			float cosTheta = cos(theta);
 
 			for (float longNumber = 0; longNumber <= longitudeBands; longNumber++) {
 
-				float phi = longNumber * 2 * 3.147 / longitudeBands;
+				float phi = longNumber * 2.0f * 3.147f / longitudeBands;
 				float sinPhi = sin(phi);
 				float cosPhi = cos(phi);
 
@@ -193,8 +193,8 @@ public:
 
 		for (uint32_t latNumber = 0; latNumber < latitudeBands; latNumber++) {
 			for (uint32_t longNumber = 0; longNumber < longitudeBands; longNumber++) {
-				uint32_t first = (latNumber * (longitudeBands + 1)) + longNumber;
-				uint32_t second = first + longitudeBands + 1;
+				uint32_t first = (latNumber * ((uint32_t)longitudeBands + 1)) + longNumber;
+				uint32_t second = first + (uint32_t)longitudeBands + 1;
 
 				_indices.push_back(first);
 				_indices.push_back(second);
