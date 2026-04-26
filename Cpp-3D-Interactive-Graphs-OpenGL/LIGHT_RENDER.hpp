@@ -10,7 +10,7 @@ GLM 1.0.3
 #include "Dependencies/glm/glm/glm.hpp" // OpenGL maths.
 #include "Dependencies/glm/glm/gtc/type_ptr.hpp"
 
-#include "MESH.hpp" // Shape of the light?
+#include "MESH.hpp" // Shape of the light.
 #include "SHADER.hpp"
 #include "CAMERA.hpp" // Get location, view and projection matrices.
 
@@ -48,12 +48,9 @@ public:
 			MESH::LoadCubeVertices(vertices, indices);
 			break;
 		case Sphere:
-			MESH::LoadSphVertices(vertices, indices);
+			MESH::LoadSphereVertices(vertices, indices);
 			break;
 		}
-		//glGenVertexArrays(1, &vao); // 1: one VAO.
-		//glBindVertexArray(vao);
-
 
 		// ******* Set Vertex Buffer object **********
 		glGenBuffers(1, &vbo); // Generate
@@ -66,7 +63,7 @@ public:
 		);
 		
 		// Of struct VERTEX, we use pos and color, no normal:
-		glEnableVertexAttribArray(0); // position of pos in the Vertex Shader file: Assets/Shaders/FLAT_MODEL.vs
+		glEnableVertexAttribArray(0); // First attribute in: Assets/Shaders/FLAT_MODEL.vs
 		glVertexAttribPointer(
 			0, // index of pos
 			3, // x, y and z
@@ -75,9 +72,9 @@ public:
 			sizeof(VERTEX), // Stride: Size of each VERTEX.
 			(GLvoid*)0 // Offset of the pos in each VERTEX.
 		);
-		glEnableVertexAttribArray(1); // position of color in the Vertex Shader file: Assets/Shaders/FLAT_MODEL.vs
+		glEnableVertexAttribArray(1); // Second attribute in: Assets/Shaders/FLAT_MODEL.vs
 		glVertexAttribPointer(
-			1, // index of color. 0: normal, 1: color.
+			1, // index of color. 
 			4, // r, g, b, alpha
 			GL_FLOAT,
 			GL_FALSE,
@@ -111,7 +108,6 @@ public:
 		mat4 model = mat4(1.0f); // model = World matrix = Identity matrix
 		model = translate(mat4(1.0), position); // translate the object to the required position
 
-		//glUseProgram(program);
 
 		GLint modelLoc = glGetUniformLocation(program, "model"); // Get the location of the uniform data type of shader.
 		glUniformMatrix4fv(

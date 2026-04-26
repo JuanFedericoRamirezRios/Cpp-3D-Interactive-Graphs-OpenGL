@@ -32,6 +32,9 @@
     <ClInclude Include="LIGHT_RENDER.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MESH_RENDER.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="OpenGL_pipeline.png">

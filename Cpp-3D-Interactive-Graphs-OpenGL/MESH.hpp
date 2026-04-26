@@ -150,7 +150,7 @@ public:
 		vertices = _vertices;
 		indices = _indices;
 	}
-	static void LoadSphVertices(std::vector<VERTEX>& vertices, std::vector<uint32_t>& indices) {
+	static void LoadSphereVertices(std::vector<VERTEX>& vertices, std::vector<uint32_t>& indices) {
 		std::vector<VERTEX> _vertices;
 		std::vector<uint32_t> _indices;
 

@@ -20,8 +20,13 @@ void InitGame();
 
 void RenderScene(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
 
+static void GlfwError(int id, const char* description) {
+	std::cerr << "GLFW Error: " << description << std::endl;
+}
 
 int main(int argc, char** argv) {
+	glfwSetErrorCallback(&GlfwError);
+
 	glfwInit();
 	
 	GLFWwindow* window = glfwCreateWindow(800, 600, " Hell world ", NULL, NULL);
