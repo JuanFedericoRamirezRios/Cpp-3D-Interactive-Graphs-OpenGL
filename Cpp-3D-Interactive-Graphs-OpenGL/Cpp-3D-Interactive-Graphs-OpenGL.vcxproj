@@ -138,6 +138,7 @@
     <ClInclude Include="MESH.hpp" />
     <ClInclude Include="MESH_RENDER.hpp" />
     <ClInclude Include="SHADER.hpp" />
+    <ClInclude Include="TEXTURE.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="OpenGL_pipeline.png" />

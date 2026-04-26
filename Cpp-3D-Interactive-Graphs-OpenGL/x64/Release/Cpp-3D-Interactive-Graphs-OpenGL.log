@@ -1,7 +1,7 @@
 ﻿  source.cpp
   Generating code
-  3 of 461 functions ( 0.7%) were compiled, the rest were copied from previous compilation.
-    1 functions were new in current compilation
-    3 functions had inline decision re-evaluated but remain unchanged
+  2 of 461 functions ( 0.4%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    2 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   Cpp-3D-Interactive-Graphs-OpenGL.vcxproj -> D:\pCloud\pCloud\GitHubRepositories\Cpp-3D-Interactive-Graphs-OpenGL\x64\Release\Cpp-3D-Interactive-Graphs-OpenGL.exe

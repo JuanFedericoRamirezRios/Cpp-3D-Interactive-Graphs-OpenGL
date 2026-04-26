@@ -15,6 +15,8 @@ GLM 1.0.3
 #include "CAMERA.hpp" // Get location, view and projection matrices.
 #include "LIGHT_RENDER.hpp"
 
+using namespace glm;
+
 class MESH_RENDER {
 private:
 	std::vector<VERTEX> vertices;
@@ -79,7 +81,7 @@ public:
 
 		// ******* Set Attributes of Vertex **********
 		// We use pos and textureCoord, no normal:
-		glEnableVertexAttribArray(0); // First attribute in: Assets/Shaders/...
+		glEnableVertexAttribArray(0); // First attribute in: Assets/Shaders/....vs
 		glVertexAttribPointer(
 			0, // index of pos
 			3, // x, y and z
@@ -88,7 +90,7 @@ public:
 			sizeof(VERTEX), // Stride: Size of each VERTEX.
 			(GLvoid*)0 // Offset of the pos in each VERTEX.
 		);
-		glEnableVertexAttribArray(1); // Second attribute in: Assets/Shaders/...
+		glEnableVertexAttribArray(1); // Second attribute in: Assets/Shaders/....vs
 		glVertexAttribPointer(
 			1, // index of textureCoord
 			2, // coordinates of texture of objects: U and V coordinates?
@@ -106,19 +108,55 @@ public:
 
 	}
 	void Draw() {
+		// ******* Set the shader **********
+		glUseProgram(program);
 
+		// ******* Set Projection and View matrix **********
+		mat4 projectionView = camera->GetProjectionMatrix() * camera->GetViewMatrix();
+		// Send to the shader
+		GLint vpLoc = glGetUniformLocation(program, "projectionView"); // "projectionView" in Assets/Shaders/....vs
+		glUniformMatrix4fv(vpLoc, 1, GL_FALSE, value_ptr(projectionView));
+
+		// ******* Set Model **********
+		mat4 translation = translate(mat4(1.0f), position);
+		mat4 scale = glm::scale(mat4(1.0f), this->scale);
+		model = mat4(1.0f);
+		model = translation * scale;
+		// Send to the shader
+		GLint modelLoc = glGetUniformLocation(program, "model"); // "model" in Assets/Shaders/....vs
+		glUniformMatrix4fv(
+			modelLoc,
+			1, // passing one matrix
+			GL_FALSE, // No need to be transposed
+			value_ptr(model) // Pointer to the data
+		);
+
+		// ******* Bind the texture **********
+		glBindTexture(GL_TEXTURE_2D, texture); // 2D texture
+		
+		// ******* Draw the object **********
+		glBindVertexArray(vao);
+		glDrawElements(
+			GL_TRIANGLES, // Mode: GL_LINES | GL_TRIANGLES
+			(GLsizei)indices.size(), // number of elements or the number of indices
+			GL_UNSIGNED_INT, //  type of index data
+			0 // location where the indices are stored
+		);
+
+		// ******* Unbind the vertex array **********
+		glBindVertexArray(0);
 	}
 	void SetPosition(vec3 position) {
-
+		this->position = position;
 	}
 	void SetScale(vec3 scale) {
-
+		this->scale = scale;
 	}
 	void SetProgram(GLuint program) {
-
+		this->program = program;
 	}
-	void SetTexture(GLuint textureID) {
-
+	void SetTexture(GLuint texture) {
+		this->texture = texture;
 	}
 
 };

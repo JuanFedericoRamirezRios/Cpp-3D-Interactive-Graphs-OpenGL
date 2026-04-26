@@ -62,6 +62,7 @@ public:
 			GL_STATIC_DRAW // Usage of the data: Modify the data once and use it many times. 
 		);
 		
+		// ******* Set Attributes of Vertex **********
 		// Of struct VERTEX, we use pos and color, no normal:
 		glEnableVertexAttribArray(0); // First attribute in: Assets/Shaders/FLAT_MODEL.vs
 		glVertexAttribPointer(
@@ -107,9 +108,8 @@ public:
 		// ******* Set the Model matrix **********
 		mat4 model = mat4(1.0f); // model = World matrix = Identity matrix
 		model = translate(mat4(1.0), position); // translate the object to the required position
-
-
-		GLint modelLoc = glGetUniformLocation(program, "model"); // Get the location of the uniform data type of shader.
+		// Send to the shader
+		GLint modelLoc = glGetUniformLocation(program, "model"); // "model" in Assets/Shaders/FLAT_MODEL.vs
 		glUniformMatrix4fv(
 			modelLoc,
 			1, // passing one matrix
@@ -119,12 +119,14 @@ public:
 		
 		// ******* Set the View matrix **********
 		mat4 view = camera->GetViewMatrix();
-		GLint vLoc = glGetUniformLocation(program, "view");
+		// Send to the shader
+		GLint vLoc = glGetUniformLocation(program, "view"); // "view" in Assets/Shaders/FLAT_MODEL.vs
 		glUniformMatrix4fv(vLoc, 1, GL_FALSE, value_ptr(view));
 
 		// ******* Set the Projection matrix **********
 		mat4 proj = camera->GetProjectionMatrix();
-		GLint pLoc = glGetUniformLocation(program, "projection");
+		// Send to the shader
+		GLint pLoc = glGetUniformLocation(program, "projection"); // "projection" in Assets/Shaders/FLAT_MODEL.vs
 		glUniformMatrix4fv(pLoc, 1, GL_FALSE, glm::value_ptr(proj));
 
 		// ******* Draw the object **********
