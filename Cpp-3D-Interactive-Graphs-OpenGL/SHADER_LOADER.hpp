@@ -12,7 +12,7 @@ GLM 1.0.3
 #include <fstream>
 #include <vector>
 
-class SHADER { // Used to Vertex Shader and Fragment Shader of OpenGL_pipeline.png
+class SHADER_LOADER { // Used to Vertex Shader and Fragment Shader of OpenGL_pipeline.png
 private:
 	std::string ReadFileShader(const char* shaderFileName) { // Name of the vertexShaderFile | fragmentShaderFile
 		std::string textFileShader;

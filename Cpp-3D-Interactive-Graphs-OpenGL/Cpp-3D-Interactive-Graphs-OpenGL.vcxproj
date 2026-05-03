@@ -137,8 +137,8 @@
     <ClInclude Include="LIGHT_RENDER.hpp" />
     <ClInclude Include="MESH.hpp" />
     <ClInclude Include="MESH_RENDER.hpp" />
-    <ClInclude Include="SHADER.hpp" />
-    <ClInclude Include="TEXTURE.hpp" />
+    <ClInclude Include="SHADER_LOADER.hpp" />
+    <ClInclude Include="TEXTURE_LOADER.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="OpenGL_pipeline.png" />
@@ -146,6 +146,8 @@
   <ItemGroup>
     <None Include="Assets\Shaders\FLAT_MODEL.fs" />
     <None Include="Assets\Shaders\FLAT_MODEL.vs" />
+    <None Include="Assets\Shaders\TEXTURE_MODEL.fs" />
+    <None Include="Assets\Shaders\TEXTURE_MODEL.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

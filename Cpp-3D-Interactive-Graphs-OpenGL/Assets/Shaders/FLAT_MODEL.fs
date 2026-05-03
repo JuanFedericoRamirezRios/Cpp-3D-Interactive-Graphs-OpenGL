@@ -12,7 +12,7 @@ GLM 1.0.3
 
 out vec4 color;
 
-in vec4 outColor;
+in vec4 outColor; // Out from Assets/Shaders/FLAT_MODEL.vs
 
 
 void main(){

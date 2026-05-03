@@ -11,7 +11,7 @@ GLM 1.0.3
 #include "Dependencies/glm/glm/gtc/type_ptr.hpp"
 
 #include "MESH.hpp" // Shape of the light.
-#include "SHADER.hpp"
+#include "SHADER_LOADER.hpp"
 #include "CAMERA.hpp" // Get location, view and projection matrices.
 
 using namespace glm;
@@ -47,8 +47,8 @@ public:
 		case Cube:
 			MESH::LoadCubeVertices(vertices, indices);
 			break;
-		case Sphere:
-			MESH::LoadSphereVertices(vertices, indices);
+		case UVsphere:
+			MESH::LoadUVSphereVertices(vertices, indices);
 			break;
 		}
 

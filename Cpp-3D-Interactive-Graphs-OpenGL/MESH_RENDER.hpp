@@ -54,8 +54,8 @@ public:
 		case Cube:
 			MESH::LoadCubeVertices(vertices, indices);
 			break;
-		case Sphere:
-			MESH::LoadSphereVertices(vertices, indices);
+		case UVsphere:
+			MESH::LoadUVSphereVertices(vertices, indices);
 			break;
 		}
 
@@ -81,7 +81,7 @@ public:
 
 		// ******* Set Attributes of Vertex **********
 		// We use pos and textureCoord, no normal:
-		glEnableVertexAttribArray(0); // First attribute in: Assets/Shaders/....vs
+		glEnableVertexAttribArray(0); // First attribute in: Assets/Shaders/TEXTURE_MODEL.vs
 		glVertexAttribPointer(
 			0, // index of pos
 			3, // x, y and z
@@ -90,7 +90,7 @@ public:
 			sizeof(VERTEX), // Stride: Size of each VERTEX.
 			(GLvoid*)0 // Offset of the pos in each VERTEX.
 		);
-		glEnableVertexAttribArray(1); // Second attribute in: Assets/Shaders/....vs
+		glEnableVertexAttribArray(1); // Second attribute in: Assets/Shaders/TEXTURE_MODEL.vs
 		glVertexAttribPointer(
 			1, // index of textureCoord
 			2, // coordinates of texture of objects: U and V coordinates?
@@ -114,7 +114,7 @@ public:
 		// ******* Set Projection and View matrix **********
 		mat4 projectionView = camera->GetProjectionMatrix() * camera->GetViewMatrix();
 		// Send to the shader
-		GLint vpLoc = glGetUniformLocation(program, "projectionView"); // "projectionView" in Assets/Shaders/....vs
+		GLint vpLoc = glGetUniformLocation(program, "projectionView"); // "projectionView" in Assets/Shaders/TEXTURE_MODEL.vs
 		glUniformMatrix4fv(vpLoc, 1, GL_FALSE, value_ptr(projectionView));
 
 		// ******* Set Model **********
@@ -123,7 +123,7 @@ public:
 		model = mat4(1.0f);
 		model = translation * scale;
 		// Send to the shader
-		GLint modelLoc = glGetUniformLocation(program, "model"); // "model" in Assets/Shaders/....vs
+		GLint modelLoc = glGetUniformLocation(program, "model"); // "model" in Assets/Shaders/TEXTURE_MODEL.vs
 		glUniformMatrix4fv(
 			modelLoc,
 			1, // passing one matrix

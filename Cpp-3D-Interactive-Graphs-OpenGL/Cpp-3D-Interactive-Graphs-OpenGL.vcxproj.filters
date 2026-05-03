@@ -26,7 +26,7 @@
     <ClInclude Include="CAMERA.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SHADER.hpp">
+    <ClInclude Include="SHADER_LOADER.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LIGHT_RENDER.hpp">
@@ -35,7 +35,7 @@
     <ClInclude Include="MESH_RENDER.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TEXTURE.hpp">
+    <ClInclude Include="TEXTURE_LOADER.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -49,6 +49,12 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="Assets\Shaders\FLAT_MODEL.fs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Assets\Shaders\TEXTURE_MODEL.fs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Assets\Shaders\TEXTURE_MODEL.vs">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

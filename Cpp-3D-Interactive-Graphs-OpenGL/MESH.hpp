@@ -15,7 +15,7 @@ enum MESH_TYPE {
 	Triangle = 0,
 	Quad = 1,
 	Cube = 2,
-	Sphere = 3
+	UVsphere = 3
 };
 struct VERTEX {
 	vec3 pos;
@@ -150,7 +150,7 @@ public:
 		vertices = _vertices;
 		indices = _indices;
 	}
-	static void LoadSphereVertices(std::vector<VERTEX>& vertices, std::vector<uint32_t>& indices) {
+	static void LoadUVSphereVertices(std::vector<VERTEX>& vertices, std::vector<uint32_t>& indices) {
 		std::vector<VERTEX> _vertices;
 		std::vector<uint32_t> _indices;
 
