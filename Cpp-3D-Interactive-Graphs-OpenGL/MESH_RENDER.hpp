@@ -15,6 +15,8 @@ GLM 1.0.3
 #include "CAMERA.hpp" // Get location, view and projection matrices.
 #include "LIGHT_RENDER.hpp"
 
+#include <btBulletDynamicsCommon.h>
+
 using namespace glm;
 
 class MESH_RENDER {
@@ -23,6 +25,7 @@ private:
 	std::vector<GLuint> indices;
 	mat4 model; // model = World matrix
 
+	btRigidBody* rigidBody;
 	CAMERA* camera;
 
 	vec3 position, scale;
@@ -34,7 +37,9 @@ private:
 	*/
 
 public:
-	MESH_RENDER(MESH_TYPE meshType, CAMERA* camera) {
+	MESH_RENDER(MESH_TYPE meshType, CAMERA* camera, btRigidBody* rigidBody) {
+		this->rigidBody = rigidBody;
+		
 		this->camera = camera;
 		scale = vec3(1.0f, 1.0f, 1.0f);
 		position = vec3(0.0f, 0.0f, 0.0f);
@@ -117,11 +122,36 @@ public:
 		GLint vpLoc = glGetUniformLocation(program, "projectionView"); // "projectionView" in Assets/Shaders/TEXTURE_MODEL.vs
 		glUniformMatrix4fv(vpLoc, 1, GL_FALSE, value_ptr(projectionView));
 
-		// ******* Set Model **********
-		mat4 translation = translate(mat4(1.0f), position);
-		mat4 scale = glm::scale(mat4(1.0f), this->scale);
+		// ******* Set Model (world matrix) **********
 		model = mat4(1.0f);
-		model = translation * scale;
+		mat4 scale = glm::scale(mat4(1.0f), this->scale);
+		// Without physics:
+		//mat4 translation = translate(mat4(1.0f), position);
+		//model = translation * scale;
+		// With physics:
+		btTransform transformation;
+		rigidBody->getMotionState()->getWorldTransform(transformation); // get the transformation from the rigidBody
+		btQuaternion rotationQuat = transformation.getRotation();
+		btVector3 translateVec = transformation.getOrigin();
+		mat4 rotation = glm::rotate(
+			mat4(1.0f),
+			rotationQuat.getAngle(), 
+			vec3(
+				rotationQuat.getAxis().getX(), 
+				rotationQuat.getAxis().getY(), 
+				rotationQuat.getAxis().getZ()
+			)
+		);
+		mat4 translation = glm::translate(
+			mat4(1.0f), 
+			vec3(
+				translateVec.getX(),
+				translateVec.getY(), 
+				translateVec.getZ()
+			)
+		);
+		model = translation * rotation * scale;
+
 		// Send to the shader
 		GLint modelLoc = glGetUniformLocation(program, "model"); // "model" in Assets/Shaders/TEXTURE_MODEL.vs
 		glUniformMatrix4fv(
