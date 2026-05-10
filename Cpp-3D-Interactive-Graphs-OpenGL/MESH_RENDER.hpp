@@ -51,16 +51,16 @@ public:
 		// ******* Load Vertex data **********
 		switch (meshType) {
 		case Triangle:
-			MESH::LoadTriangleVertices(vertices, indices);
+			MESH_LOADER::LoadTriangleVertices(vertices, indices);
 			break;
 		case Quad:
-			MESH::LoadQuadVertices(vertices, indices);
+			MESH_LOADER::LoadQuadVertices(vertices, indices);
 			break;
 		case Cube:
-			MESH::LoadCubeVertices(vertices, indices);
+			MESH_LOADER::LoadCubeVertices(vertices, indices);
 			break;
 		case UVsphere:
-			MESH::LoadUVSphereVertices(vertices, indices);
+			MESH_LOADER::LoadUVSphereVertices(vertices, indices);
 			break;
 		}
 
@@ -125,9 +125,11 @@ public:
 		// ******* Set Model (world matrix) **********
 		model = mat4(1.0f);
 		mat4 scale = glm::scale(mat4(1.0f), this->scale);
+
 		// Without physics:
 		//mat4 translation = translate(mat4(1.0f), position);
 		//model = translation * scale;
+
 		// With physics:
 		btTransform transformation;
 		rigidBody->getMotionState()->getWorldTransform(transformation); // get the transformation from the rigidBody

@@ -135,7 +135,7 @@
   <ItemGroup>
     <ClInclude Include="CAMERA.hpp" />
     <ClInclude Include="LIGHT_RENDER.hpp" />
-    <ClInclude Include="MESH.hpp" />
+    <ClInclude Include="MESH_LOADER.hpp" />
     <ClInclude Include="MESH_RENDER.hpp" />
     <ClInclude Include="SHADER_LOADER.hpp" />
     <ClInclude Include="TEXTURE_LOADER.hpp" />

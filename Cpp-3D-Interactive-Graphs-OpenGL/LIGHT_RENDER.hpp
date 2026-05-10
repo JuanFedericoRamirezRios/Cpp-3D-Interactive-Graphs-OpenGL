@@ -10,7 +10,7 @@ GLM 1.0.3
 #include "Dependencies/glm/glm/glm.hpp" // OpenGL maths.
 #include "Dependencies/glm/glm/gtc/type_ptr.hpp"
 
-#include "MESH.hpp" // Shape of the light.
+#include "MESH_LOADER.hpp" // Shape of the light.
 #include "SHADER_LOADER.hpp"
 #include "CAMERA.hpp" // Get location, view and projection matrices.
 
@@ -39,16 +39,16 @@ public:
 		// ******* Load Vertex data **********
 		switch (meshType) {
 		case Triangle:
-			MESH::LoadTriangleVertices(vertices, indices);
+			MESH_LOADER::LoadTriangleVertices(vertices, indices);
 			break;
 		case Quad:
-			MESH::LoadQuadVertices(vertices, indices);
+			MESH_LOADER::LoadQuadVertices(vertices, indices);
 			break;
 		case Cube:
-			MESH::LoadCubeVertices(vertices, indices);
+			MESH_LOADER::LoadCubeVertices(vertices, indices);
 			break;
 		case UVsphere:
-			MESH::LoadUVSphereVertices(vertices, indices);
+			MESH_LOADER::LoadUVSphereVertices(vertices, indices);
 			break;
 		}
 

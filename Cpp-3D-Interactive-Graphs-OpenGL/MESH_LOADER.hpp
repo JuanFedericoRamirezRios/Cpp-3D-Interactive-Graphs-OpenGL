@@ -24,7 +24,7 @@ struct VERTEX {
 	vec2 textureCoord; // -> texture of objects: U and V coordinates?
 };
 
-class MESH {
+class MESH_LOADER {
 private:
 
 public:

@@ -20,7 +20,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="MESH.hpp">
+    <ClInclude Include="MESH_LOADER.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CAMERA.hpp">
