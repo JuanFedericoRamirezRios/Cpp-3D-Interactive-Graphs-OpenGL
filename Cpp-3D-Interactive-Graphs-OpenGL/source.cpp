@@ -35,6 +35,94 @@ static void GlfwError(int id, const char* description) {
 	std::cerr << "GLFW Error: " << description << std::endl;
 }
 
+void AddRigidBodMesh() {
+	// ******** Sphere rigid body *********
+	btCollisionShape* sphereCollisionShape = new btSphereShape(1.0f); // narrowphase: Collision at sphere shape level. radius = 1.
+	btDefaultMotionState* sphereMotionState = new btDefaultMotionState(
+		btTransform(
+			btQuaternion(0, 0, 0, 1), // rotation: (0, 0, 0, 1) -> No rotation. See matrix rotation.
+			btVector3(0, 0.5f, 0) // position: (0, .0.5f, 0): 0.5 along y axis
+		)
+	);
+	btScalar mass = 13.0;
+	btVector3 sphereInertia(0, 0, 0);
+	sphereCollisionShape->calculateLocalInertia(mass, sphereInertia);
+	btRigidBody::btRigidBodyConstructionInfo sphereRigidBodyInfo(mass, sphereMotionState, sphereCollisionShape, sphereInertia);
+	btRigidBody* sphereRigidBody = new btRigidBody(sphereRigidBodyInfo);
+	sphereRigidBody->setRestitution(0.0f); // 1 <- max value: Rough
+	sphereRigidBody->setFriction(1.0f);
+	sphereRigidBody->setActivationState(DISABLE_DEACTIVATION); // We need to control the jump.
+	dynamicsWorld->addRigidBody(sphereRigidBody);
+
+	// ******** Sphere mesh *********
+	GLuint sphereTexture = textureLoader.GetTextureID("Assets/Textures/globe.jpg");
+	uvSphere = new MESH_RENDER(MESH_TYPE::UVsphere, "hero", camera, sphereRigidBody);
+	uvSphere->SetProgram(textureShaderProgram);
+	uvSphere->SetTexture(sphereTexture);
+	//uvSphere->SetPosition(glm::vec3(0.0f, 0.0f, 0.0f)); // Without physics.
+	uvSphere->SetScale(vec3(1.0f));
+	sphereRigidBody->setUserPointer(uvSphere); // access the name of the rendered mesh
+
+	// ******** Ground rigid body *********
+	btCollisionShape* groundCollisionShape = new  btBoxShape(btVector3(4.0f, 0.5f, 4.0f)); // narrowphase: Collision at box shape level. length, height, depth = 4x5x4
+	btDefaultMotionState* groundMotionState = new btDefaultMotionState(
+		btTransform(
+			btQuaternion(0, 0, 0, 1), // rotation: (0, 0, 0, 1) -> No rotation. See matrix rotation.
+			btVector3(0, -1.0f, 0) // position: (0, -1.0f, 0): -1 along y axis
+		)
+	);
+	btRigidBody::btRigidBodyConstructionInfo groundRigidBodyInfo(
+		0.0f, // mass
+		groundMotionState, // new btDefaultMotionState(),
+		groundCollisionShape,
+		btVector3(0, 0, 0) // inertia
+	);
+	btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyInfo);
+	groundRigidBody->setRestitution(0.0f); // 1 <- max value: Rough
+	groundRigidBody->setFriction(1.0f);
+	groundRigidBody->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT); // will be like a brick wall and won't move and get affected by forces from other rigid	bodies, but other bodies will be affected by it.
+	dynamicsWorld->addRigidBody(groundRigidBody);
+
+	// ******** Ground mesh *********
+	GLuint groundTexture = textureLoader.GetTextureID("Assets/Textures/ground.jpg");
+	ground = new MESH_RENDER(MESH_TYPE::Cube, "ground", camera, groundRigidBody);
+	ground->SetProgram(textureShaderProgram);
+	ground->SetTexture(groundTexture);
+	ground->SetScale(vec3(4.0f, 0.5f, 4.0f));
+	groundRigidBody->setUserPointer(ground);
+
+	// ******** Enemy rigid body *********
+	btCollisionShape* cubeCollisionShape = new  btBoxShape(btVector3(1.0f, 1.0f, 1.0f)); // narrowphase: Collision at box shape level.
+	btDefaultMotionState* cubeMotionState = new btDefaultMotionState(
+		btTransform(
+			btQuaternion(0, 0, 0, 1), // rotation: (0, 0, 0, 1) -> No rotation. See matrix rotation.
+			btVector3(18.0f, 1.0f, 0) // position: 18 in x and 1 in y
+		)
+	);
+	btRigidBody::btRigidBodyConstructionInfo cubeRigidBodyInfo(
+		0.0f, // mass
+		cubeMotionState, // new btDefaultMotionState(),
+		cubeCollisionShape,
+		btVector3(0, 0, 0) // inertia
+	);
+	btRigidBody* cubeRigidBody = new btRigidBody(cubeRigidBodyInfo);
+	cubeRigidBody->setRestitution(0.0f); // 1 <- max value: Rough
+	cubeRigidBody->setFriction(1.0f);
+	// cubeRigidBody->setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT); // exert force on other	objects.
+	cubeRigidBody->setCollisionFlags(btCollisionObject::CF_NO_CONTACT_RESPONSE); // check if there was an overlap between	the enemy rigid body and another body.
+	dynamicsWorld->addRigidBody(cubeRigidBody);
+
+	// ******** Enemy mesh *********
+	// GLuint cubeTexture = textureLoader.GetTextureID("Assets/Textures/ground.jpg");
+	enemy = new MESH_RENDER(MESH_TYPE::Cube, "enemy", camera, cubeRigidBody);
+	enemy->SetProgram(textureShaderProgram);
+	enemy->SetTexture(groundTexture);
+	enemy->SetScale(vec3(1.0f, 1.0f, 1.0f));
+	groundRigidBody->setUserPointer(enemy);
+
+
+}
+
 int main(int argc, char** argv) {
 	glfwSetErrorCallback(&GlfwError);
 
@@ -92,7 +180,6 @@ void InitGame() {
 
 	// ******** Texture loader *********
 	TEXTURE_LOADER textureLoader;
-	//GLuint sphereTexture = textureLoader.GetTextureID("Assets/Textures/globe.jpg");
 
 	// ******** Load physics *********
 	btBroadphaseInterface* broadPhaseCollision = new btDbvtBroadphase(); // broadphase: Using bounding boxes of the objects
@@ -102,57 +189,7 @@ void InitGame() {
 	dynamicsWorld = new btDiscreteDynamicsWorld(dispatcherCollision, broadPhaseCollision, constrains, defalultCollisionConf);
 	dynamicsWorld->setGravity(btVector3(0.0f, -9.8f, 0.0f));
 	
-	// ******** Sphere rigid body *********
-	btCollisionShape* sphereCollisionShape = new btSphereShape(1.0f); // narrowphase: Collision at sphere shape level. radius = 1.
-	btDefaultMotionState* sphereMotionState = new btDefaultMotionState(
-		btTransform(
-			btQuaternion(0, 0, 0, 1), // rotation: (0, 0, 0, 1) -> No rotation. See matrix rotation.
-			btVector3(0, 10.0f, 0) // position: (0, 10.0f, 0): 10 along y axis
-		)
-	);
-	btScalar mass = 10.0;
-	btVector3 sphereInertia(0, 0, 0);
-	sphereCollisionShape->calculateLocalInertia(mass, sphereInertia);
-	btRigidBody::btRigidBodyConstructionInfo sphereRigidBodyInfo(mass, sphereMotionState, sphereCollisionShape, sphereInertia);
-	btRigidBody* sphereRigidBody = new btRigidBody(sphereRigidBodyInfo);
-	sphereRigidBody->setRestitution(1.0f); // 1 <- max value: Rough
-	sphereRigidBody->setFriction(1.0f); 
-	dynamicsWorld->addRigidBody(sphereRigidBody);
-
-	// ******** Sphere mesh *********
-	GLuint sphereTexture = textureLoader.GetTextureID("Assets/Textures/globe.jpg");
-	uvSphere = new MESH_RENDER(MESH_TYPE::UVsphere, camera, sphereRigidBody);
-	uvSphere->SetProgram(textureShaderProgram);
-	uvSphere->SetTexture(sphereTexture);
-	//uvSphere->SetPosition(glm::vec3(0.0f, 0.0f, 0.0f)); // Without physics.
-	uvSphere->SetScale(vec3(1.0f));
-
-	// ******** Ground rigid body *********
-	btCollisionShape* groundCollisionShape = new  btBoxShape(btVector3(4.0f, 0.5f, 4.0f)); // narrowphase: Collision at box shape level. length, height, depth = 4x5x4
-	btDefaultMotionState* groundMotionState = new btDefaultMotionState(
-		btTransform(
-			btQuaternion(0, 0, 0, 1), // rotation: (0, 0, 0, 1) -> No rotation. See matrix rotation.
-			btVector3(0, -2.0f, 0) // position: (0, -2.0f, 0): -2 along y axis
-		)
-	);
-	btRigidBody::btRigidBodyConstructionInfo groundRigidBodyInfo(
-		0.0f, // mass
-		groundMotionState, // new btDefaultMotionState(),
-		groundCollisionShape, 
-		btVector3(0, 0, 0) // inertia
-	);
-	btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyInfo);
-	groundRigidBody->setRestitution(0.9f); // 1 <- max value: Rough
-	groundRigidBody->setFriction(1.0f);
-	groundRigidBody->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT); // will be like a brick wall and won't move and get affected by forces from other rigid	bodies, but other bodies will be affected by it.
-	dynamicsWorld->addRigidBody(groundRigidBody);
-
-	// ******** Ground mesh *********
-	GLuint groundTexture = textureLoader.GetTextureID("Assets/Textures/ground.jpg");
-	ground = new MESH_RENDER(MESH_TYPE::Cube, camera, groundRigidBody);
-	ground->SetProgram(textureShaderProgram);
-	ground->SetTexture(groundTexture);
-	ground->SetScale(vec3(4.0f, 0.5f, 4.0f));
+	
 }
 void RenderScene(GLclampf red = 0.0, GLclampf green = 0.0, GLclampf blue = 0.0, GLclampf alpha = 1.0) { // Clampled 32 bits float, clamped to the range [0, 1]
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the color buffer and the depth buffer (if a pixel is behind another pixel, then that pixel will not be stored and show).
