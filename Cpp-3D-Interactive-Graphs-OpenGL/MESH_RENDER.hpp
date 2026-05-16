@@ -25,7 +25,6 @@ private:
 	std::vector<GLuint> indices;
 	mat4 model; // model = World matrix
 
-	btRigidBody* rigidBody;
 	CAMERA* camera;
 
 	vec3 position, scale;
@@ -39,6 +38,8 @@ private:
 	std::string name = "";
 
 public:
+	btRigidBody* rigidBody;
+
 	MESH_RENDER(MESH_TYPE meshType, std::string name, CAMERA* camera, btRigidBody* rigidBody) {
 		this->name = name;
 		this->rigidBody = rigidBody;

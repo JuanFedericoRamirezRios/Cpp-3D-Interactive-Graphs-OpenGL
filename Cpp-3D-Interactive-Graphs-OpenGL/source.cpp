@@ -24,6 +24,11 @@ CAMERA* camera;
 LIGHT_RENDER* render;
 MESH_RENDER* uvSphere;
 MESH_RENDER* ground;
+MESH_RENDER* enemy;
+
+GLuint flatShaderProgram, textureShaderProgram;
+
+GLuint sphereTexture, groundTexture;
 
 btDiscreteDynamicsWorld* dynamicsWorld; // Track of all the physics.
 
@@ -55,7 +60,6 @@ void AddRigidBodMesh() {
 	dynamicsWorld->addRigidBody(sphereRigidBody);
 
 	// ******** Sphere mesh *********
-	GLuint sphereTexture = textureLoader.GetTextureID("Assets/Textures/globe.jpg");
 	uvSphere = new MESH_RENDER(MESH_TYPE::UVsphere, "hero", camera, sphereRigidBody);
 	uvSphere->SetProgram(textureShaderProgram);
 	uvSphere->SetTexture(sphereTexture);
@@ -84,7 +88,6 @@ void AddRigidBodMesh() {
 	dynamicsWorld->addRigidBody(groundRigidBody);
 
 	// ******** Ground mesh *********
-	GLuint groundTexture = textureLoader.GetTextureID("Assets/Textures/ground.jpg");
 	ground = new MESH_RENDER(MESH_TYPE::Cube, "ground", camera, groundRigidBody);
 	ground->SetProgram(textureShaderProgram);
 	ground->SetTexture(groundTexture);
@@ -121,6 +124,24 @@ void AddRigidBodMesh() {
 	groundRigidBody->setUserPointer(enemy);
 
 
+}
+
+void CustomUpdate(btDynamicsWorld* dynamicsWorld, btScalar dt) { // Custom update of dynamicsWorld (additional to physics).
+	// Get enemy transform
+	btTransform transformEnemy(enemy->rigidBody->getWorldTransform()); // WorldMatrix*PosMatrix
+
+	// Set enemy position
+	btVector3 velocity(-15, 0, 0);
+	transformEnemy.setOrigin(transformEnemy.getOrigin() + velocity * dt);
+
+	// Check if offScreen
+	if (transformEnemy.getOrigin().x() <= -18.0f) {
+		transformEnemy.setOrigin(btVector3(18, 1, 0));
+		//score++;
+		//label->setText("Score: " + std::to_string(score));
+	}
+	enemy->rigidBody->setWorldTransform(transformEnemy);
+	enemy->rigidBody->getMotionState()->setWorldTransform(transformEnemy);
 }
 
 int main(int argc, char** argv) {
@@ -167,8 +188,8 @@ void InitGame() {
 
 	// ******** Set shaders *********
 	SHADER_LOADER shaderLoader;
-	GLuint flatShaderProgram = shaderLoader.CreateProgram("Assets/Shaders/FLAT_MODEL.vs", "Assets/Shaders/FLAT_MODEL.fs");
-	GLuint textureShaderProgram = shaderLoader.CreateProgram("Assets/Shaders/TEXTURE_MODEL.vs", "Assets/Shaders/TEXTURE_MODEL.fs");
+	flatShaderProgram = shaderLoader.CreateProgram("Assets/Shaders/FLAT_MODEL.vs", "Assets/Shaders/FLAT_MODEL.fs");
+	textureShaderProgram = shaderLoader.CreateProgram("Assets/Shaders/TEXTURE_MODEL.vs", "Assets/Shaders/TEXTURE_MODEL.fs");
 	
 	// ******** Set camera *********
 	camera = new CAMERA(45.0f, 800, 600, 0.1f, 100.0f, vec3(0.0f, 4.0f, 20.0f)); // 800x600: size of window
@@ -180,6 +201,8 @@ void InitGame() {
 
 	// ******** Texture loader *********
 	TEXTURE_LOADER textureLoader;
+	sphereTexture = textureLoader.GetTextureID("Assets/Textures/globe.jpg");
+	groundTexture = textureLoader.GetTextureID("Assets/Textures/ground.jpg");
 
 	// ******** Load physics *********
 	btBroadphaseInterface* broadPhaseCollision = new btDbvtBroadphase(); // broadphase: Using bounding boxes of the objects
@@ -188,8 +211,9 @@ void InitGame() {
 	btSequentialImpulseConstraintSolver* constrains = new btSequentialImpulseConstraintSolver(); // can restrict the motion or rotation
 	dynamicsWorld = new btDiscreteDynamicsWorld(dispatcherCollision, broadPhaseCollision, constrains, defalultCollisionConf);
 	dynamicsWorld->setGravity(btVector3(0.0f, -9.8f, 0.0f));
+	dynamicsWorld->setInternalTickCallback(CustomUpdate);
 	
-	
+	AddRigidBodMesh();
 }
 void RenderScene(GLclampf red = 0.0, GLclampf green = 0.0, GLclampf blue = 0.0, GLclampf alpha = 1.0) { // Clampled 32 bits float, clamped to the range [0, 1]
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the color buffer and the depth buffer (if a pixel is behind another pixel, then that pixel will not be stored and show).
@@ -200,4 +224,5 @@ void RenderScene(GLclampf red = 0.0, GLclampf green = 0.0, GLclampf blue = 0.0, 
 	//render->Draw();
 	uvSphere->Draw();
 	ground->Draw();
+	enemy->Draw();
 }
