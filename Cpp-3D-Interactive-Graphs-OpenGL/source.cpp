@@ -112,7 +112,7 @@ void AddRigidBodMesh() {
 	cubeRigidBody->setRestitution(0.0f); // 1 <- max value: Rough
 	cubeRigidBody->setFriction(1.0f);
 	// cubeRigidBody->setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT); // exert force on other	objects.
-	cubeRigidBody->setCollisionFlags(btCollisionObject::CF_NO_CONTACT_RESPONSE); // check if there was an overlap between	the enemy rigid body and another body.
+	cubeRigidBody->setCollisionFlags(btCollisionObject::CF_NO_CONTACT_RESPONSE); // CF_NO_CONTACT_RESPONSE: No check if there was an overlap between the enemy rigid body and another body. CF_KINEMATIC_OBJECT: The objects respond to collision.
 	dynamicsWorld->addRigidBody(cubeRigidBody);
 
 	// ******** Enemy mesh *********
@@ -134,14 +134,50 @@ void CustomUpdate(btDynamicsWorld* dynamicsWorld, btScalar dt) { // Custom updat
 	btVector3 velocity(-15, 0, 0);
 	transformEnemy.setOrigin(transformEnemy.getOrigin() + velocity * dt);
 
-	// Check if offScreen
+	// Check if enemy is on offScreen
 	if (transformEnemy.getOrigin().x() <= -18.0f) {
-		transformEnemy.setOrigin(btVector3(18, 1, 0));
+		transformEnemy.setOrigin(btVector3(18, 1, 0)); // back to the right of the viewport
 		//score++;
 		//label->setText("Score: " + std::to_string(score));
 	}
 	enemy->rigidBody->setWorldTransform(transformEnemy);
 	enemy->rigidBody->getMotionState()->setWorldTransform(transformEnemy);
+
+	// Check every collisions
+	int numCollisions = dynamicsWorld->getDispatcher()->getNumManifolds();
+	for (int n = 0; n < numCollisions; n++) {
+		btPersistentManifold* contactManifold = dynamicsWorld->getDispatcher()->getManifoldByIndexInternal(n);
+		int numContacts = contactManifold->getNumContacts(); // Number of objects in contact.
+		if (numContacts > 0) {
+			const btCollisionObject* bodyA = contactManifold->getBody0();
+			const btCollisionObject* bodyB = contactManifold->getBody1();
+			MESH_RENDER* meshA = (MESH_RENDER*)bodyA->getUserPointer();
+			MESH_RENDER* meshB = (MESH_RENDER*)bodyB->getUserPointer();
+
+			if ((meshA->name == "hero" && meshB->name == "enemy") ||
+			(meshA->name == "enemy" && meshB->name == "hero")) {
+				printf("collision: %s with %s \n", meshA->name, meshB->name);
+				if (meshB->name == "enemy") {
+					btTransform transEnemy(meshB->rigidBody->getWorldTransform());
+					transEnemy.setOrigin(btVector3(18, 1, 0)); // back to the right of the viewport
+					meshB->rigidBody->setWorldTransform(transEnemy);
+					meshB->rigidBody->getMotionState()->setWorldTransform(transEnemy);
+				} else { // If meshA is enemy
+					btTransform transEnemy(meshA->rigidBody->getWorldTransform());
+					transEnemy.setOrigin(btVector3(18, 1, 0)); // back to the right of the viewport
+					meshA->rigidBody->setWorldTransform(transEnemy);
+					meshA->rigidBody->getMotionState()->setWorldTransform(transEnemy);
+				}
+			}
+			if ((meshA->name == "hero" && meshB->name == "ground") ||
+			(meshA->name == "ground" && meshB->name	== "hero")) {
+				printf("collision: %s with %s \n", meshA->name, meshB->name);
+			}
+
+		}
+
+	}
+
 }
 
 int main(int argc, char** argv) {

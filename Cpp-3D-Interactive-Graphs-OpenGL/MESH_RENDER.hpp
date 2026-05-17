@@ -35,9 +35,11 @@ private:
 	VAO: Vertex Array Object: VBOs and attribures per object
 	*/
 
-	std::string name = "";
+	
 
 public:
+	std::string name = "";
+
 	btRigidBody* rigidBody;
 
 	MESH_RENDER(MESH_TYPE meshType, std::string name, CAMERA* camera, btRigidBody* rigidBody) {
