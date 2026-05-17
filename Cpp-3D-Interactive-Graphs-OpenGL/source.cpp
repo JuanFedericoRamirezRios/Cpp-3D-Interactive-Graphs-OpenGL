@@ -26,11 +26,13 @@ MESH_RENDER* uvSphere;
 MESH_RENDER* ground;
 MESH_RENDER* enemy;
 
+btDiscreteDynamicsWorld* dynamicsWorld; // Track of all the physics.
+
 GLuint flatShaderProgram, textureShaderProgram;
 
 GLuint sphereTexture, groundTexture;
 
-btDiscreteDynamicsWorld* dynamicsWorld; // Track of all the physics.
+bool grounded = false;
 
 void InitGame();
 
@@ -39,7 +41,6 @@ void RenderScene(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
 static void GlfwError(int id, const char* description) {
 	std::cerr << "GLFW Error: " << description << std::endl;
 }
-
 void AddRigidBodMesh() {
 	// ******** Sphere rigid body *********
 	btCollisionShape* sphereCollisionShape = new btSphereShape(1.0f); // narrowphase: Collision at sphere shape level. radius = 1.
@@ -121,17 +122,17 @@ void AddRigidBodMesh() {
 	enemy->SetProgram(textureShaderProgram);
 	enemy->SetTexture(groundTexture);
 	enemy->SetScale(vec3(1.0f, 1.0f, 1.0f));
-	groundRigidBody->setUserPointer(enemy);
+	cubeRigidBody->setUserPointer(enemy);
 
 
 }
-
 void CustomUpdate(btDynamicsWorld* dynamicsWorld, btScalar dt) { // Custom update of dynamicsWorld (additional to physics).
 	// Get enemy transform
 	btTransform transformEnemy(enemy->rigidBody->getWorldTransform()); // WorldMatrix*PosMatrix
 
 	// Set enemy position
-	btVector3 velocity(-15, 0, 0);
+	btVector3 velocity(-15.0f, 0, 0);
+	//btVector3 velocity(0.0f, 0, 0);
 	transformEnemy.setOrigin(transformEnemy.getOrigin() + velocity * dt);
 
 	// Check if enemy is on offScreen
@@ -144,19 +145,21 @@ void CustomUpdate(btDynamicsWorld* dynamicsWorld, btScalar dt) { // Custom updat
 	enemy->rigidBody->getMotionState()->setWorldTransform(transformEnemy);
 
 	// Check every collisions
+	grounded = false;
 	int numCollisions = dynamicsWorld->getDispatcher()->getNumManifolds();
 	for (int n = 0; n < numCollisions; n++) {
 		btPersistentManifold* contactManifold = dynamicsWorld->getDispatcher()->getManifoldByIndexInternal(n);
 		int numContacts = contactManifold->getNumContacts(); // Number of objects in contact.
 		if (numContacts > 0) {
+			
 			const btCollisionObject* bodyA = contactManifold->getBody0();
 			const btCollisionObject* bodyB = contactManifold->getBody1();
 			MESH_RENDER* meshA = (MESH_RENDER*)bodyA->getUserPointer();
 			MESH_RENDER* meshB = (MESH_RENDER*)bodyB->getUserPointer();
-
-			if ((meshA->name == "hero" && meshB->name == "enemy") ||
+			
+			if ((meshA->name == "hero" && meshB->name == "enemy") || 
 			(meshA->name == "enemy" && meshB->name == "hero")) {
-				printf("collision: %s with %s \n", meshA->name, meshB->name);
+				//printf("Collision: %s with %s \n", meshA->name, meshB->name);
 				if (meshB->name == "enemy") {
 					btTransform transEnemy(meshB->rigidBody->getWorldTransform());
 					transEnemy.setOrigin(btVector3(18, 1, 0)); // back to the right of the viewport
@@ -171,7 +174,8 @@ void CustomUpdate(btDynamicsWorld* dynamicsWorld, btScalar dt) { // Custom updat
 			}
 			if ((meshA->name == "hero" && meshB->name == "ground") ||
 			(meshA->name == "ground" && meshB->name	== "hero")) {
-				printf("collision: %s with %s \n", meshA->name, meshB->name);
+				grounded = true;
+				//printf("Collision: %s with %s \n", meshA->name, meshB->name);
 			}
 
 		}
@@ -179,7 +183,23 @@ void CustomUpdate(btDynamicsWorld* dynamicsWorld, btScalar dt) { // Custom updat
 	}
 
 }
+void UpdateKeyboard(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+		glfwSetWindowShouldClose(window, true);
+	}
+	if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
+		//printf("Pressed up key \n");
 
+		if (grounded == true) {
+			grounded = false;
+			uvSphere->rigidBody->applyImpulse(
+				btVector3(0.0f, 100.0f, 0.0f), // impulse force: 100 in y.
+				btVector3(0.0f, 0.0f, 0.0f) // position from the center of mass where the impulse is applied -> can be rotation
+			);
+			
+		}
+	}
+}
 int main(int argc, char** argv) {
 	glfwSetErrorCallback(&GlfwError);
 
@@ -188,6 +208,8 @@ int main(int argc, char** argv) {
 	GLFWwindow* window = glfwCreateWindow(800, 600, " Hell world ", NULL, NULL);
 	
 	glfwMakeContextCurrent(window);
+	// Capture keyboard events
+	glfwSetKeyCallback(window, UpdateKeyboard);
 	
 	glewInit();
 
@@ -243,7 +265,7 @@ void InitGame() {
 	// ******** Load physics *********
 	btBroadphaseInterface* broadPhaseCollision = new btDbvtBroadphase(); // broadphase: Using bounding boxes of the objects
 	btDefaultCollisionConfiguration* defalultCollisionConf = new btDefaultCollisionConfiguration(); // Default memory.
-	btCollisionDispatcher* dispatcherCollision = new	btCollisionDispatcher(defalultCollisionConf); // details of the collision detection, such as which object collided with which other object.
+	btCollisionDispatcher* dispatcherCollision = new btCollisionDispatcher(defalultCollisionConf); // details of the collision detection, such as which object collided with which other object.
 	btSequentialImpulseConstraintSolver* constrains = new btSequentialImpulseConstraintSolver(); // can restrict the motion or rotation
 	dynamicsWorld = new btDiscreteDynamicsWorld(dispatcherCollision, broadPhaseCollision, constrains, defalultCollisionConf);
 	dynamicsWorld->setGravity(btVector3(0.0f, -9.8f, 0.0f));
