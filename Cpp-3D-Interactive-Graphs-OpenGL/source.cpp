@@ -33,6 +33,8 @@ GLuint flatShaderProgram, textureShaderProgram;
 GLuint sphereTexture, groundTexture;
 
 bool grounded = false;
+bool gameOver = true;
+int score = 0;
 
 void InitGame();
 
@@ -127,23 +129,27 @@ void AddRigidBodMesh() {
 
 }
 void CustomUpdate(btDynamicsWorld* dynamicsWorld, btScalar dt) { // Custom update of dynamicsWorld (additional to physics).
-	// Get enemy transform
-	btTransform transformEnemy(enemy->rigidBody->getWorldTransform()); // WorldMatrix*PosMatrix
+	if (!gameOver) {
+		// Get enemy transform
+		btTransform transformEnemy(enemy->rigidBody->getWorldTransform()); // WorldMatrix*PosMatrix
 
-	// Set enemy position
-	btVector3 velocity(-15.0f, 0, 0);
-	//btVector3 velocity(0.0f, 0, 0);
-	transformEnemy.setOrigin(transformEnemy.getOrigin() + velocity * dt);
+		// Set enemy position
+		btVector3 velocity(-15.0f, 0, 0);
+		//btVector3 velocity(0.0f, 0, 0);
+		transformEnemy.setOrigin(transformEnemy.getOrigin() + velocity * dt);
 
-	// Check if enemy is on offScreen
-	if (transformEnemy.getOrigin().x() <= -18.0f) {
-		transformEnemy.setOrigin(btVector3(18, 1, 0)); // back to the right of the viewport
-		//score++;
-		//label->setText("Score: " + std::to_string(score));
+		// Check if enemy is on offScreen
+		if (transformEnemy.getOrigin().x() <= -18.0f) {
+			transformEnemy.setOrigin(btVector3(18, 1, 0)); // back to the right of the viewport
+			score++;
+			
+				
+			printf("Score: %i\n", score);
+			//label->setText("Score: " + std::to_string(score));
+		}
+		enemy->rigidBody->setWorldTransform(transformEnemy);
+		enemy->rigidBody->getMotionState()->setWorldTransform(transformEnemy);
 	}
-	enemy->rigidBody->setWorldTransform(transformEnemy);
-	enemy->rigidBody->getMotionState()->setWorldTransform(transformEnemy);
-
 	// Check every collisions
 	grounded = false;
 	int numCollisions = dynamicsWorld->getDispatcher()->getNumManifolds();
@@ -171,6 +177,9 @@ void CustomUpdate(btDynamicsWorld* dynamicsWorld, btScalar dt) { // Custom updat
 					meshA->rigidBody->setWorldTransform(transEnemy);
 					meshA->rigidBody->getMotionState()->setWorldTransform(transEnemy);
 				}
+				gameOver = true;
+				score = 0;
+				printf("Score: %i\n", score);
 			}
 			if ((meshA->name == "hero" && meshB->name == "ground") ||
 			(meshA->name == "ground" && meshB->name	== "hero")) {
@@ -188,15 +197,16 @@ void UpdateKeyboard(GLFWwindow* window, int key, int scancode, int action, int m
 		glfwSetWindowShouldClose(window, true);
 	}
 	if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
-		//printf("Pressed up key \n");
-
-		if (grounded == true) {
-			grounded = false;
-			uvSphere->rigidBody->applyImpulse(
-				btVector3(0.0f, 100.0f, 0.0f), // impulse force: 100 in y.
-				btVector3(0.0f, 0.0f, 0.0f) // position from the center of mass where the impulse is applied -> can be rotation
-			);
-			
+		if (gameOver)
+			gameOver = false;
+		else {
+			if (grounded == true) {
+				grounded = false;
+				uvSphere->rigidBody->applyImpulse(
+					btVector3(0.0f, 150.0f, 0.0f), // impulse force: 100 in y.
+					btVector3(0.0f, 0.0f, 0.0f) // position from the center of mass where the impulse is applied -> can be rotation
+				);
+			}
 		}
 	}
 }
