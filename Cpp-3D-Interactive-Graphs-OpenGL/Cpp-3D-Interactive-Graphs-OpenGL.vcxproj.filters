@@ -38,6 +38,9 @@
     <ClInclude Include="TEXTURE_LOADER.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TEXT_RENDER.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="OpenGL_pipeline.png">
