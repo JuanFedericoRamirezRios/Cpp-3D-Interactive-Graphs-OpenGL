@@ -125,13 +125,13 @@ public:
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
 		glBufferData( // Bind the data to the buffer
 			GL_ARRAY_BUFFER, // Buffer type
-			sizeof(GLfloat) * 6 * 4,  // Size in bytes of the buffer data.
+			sizeof(GLfloat) * 6 * 4,  // Size in bytes of the buffer data: 6 vertices with 4 coordinates each one
 			NULL, // Pointer to the data
 			GL_DYNAMIC_DRAW // Usage of the data
 		);
 
 		// ******* Set position attribute of Vertex **********
-		glEnableVertexAttribArray(0); // First and only attribute in: Assets/Shaders/TEXT.vs
+		glEnableVertexAttribArray(0); // First attribute in: Assets/Shaders/TEXT.vs
 		glVertexAttribPointer(
 			0,  // index of pos
 			4,  // x, y, z and ...?
@@ -149,14 +149,85 @@ public:
 	~TEXT_RENDER() {
 
 	}
-	void draw() {
+	void Draw() {
+		vec2 textPos = this->pos;
+
+		// ******* Set the shader **********
+		glUseProgram(program);
+
+		// ******* Set blending (of color) mode **********
+		glEnable(GL_BLEND); // Bleding enabled
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // source pixeles: GL_SRC_ALPHA. destination pixels: GL_ONE_MINUS_SRC_ALPHA. Source and destination can be substract, add or divide.
+
+		// ******* Set text color and texture **********
+		glUniform3f(
+			glGetUniformLocation(program, "textColor"), // "textColor" in Assets/Shaders/TEXT.vs
+			this->color.x, 
+			this->color.y, 
+			this->color.z
+		);
+		glActiveTexture(GL_TEXTURE0);
+
+		// ******* Set Vertex Array Object **********
+		glBindVertexArray(vao);
+
+		// ******* Iterate through all characters **********
+		std::string::const_iterator n;
+		for (n = text.begin(); n != text.end(); n++) {
+
+			CHARACTER ch = chars[*n];
+
+			GLfloat xpos = textPos.x + ch.bearing.x * this->scale;
+			GLfloat ypos = textPos.y - (ch.size.y - ch.bearing.y) * this->scale;
+
+			GLfloat w = ch.size.x * this->scale;
+			GLfloat h = ch.size.y * this->scale;
+
+			// vertices per character
+			GLfloat vertices[6][4] = {
+				// Triangle 1 
+				{ xpos, ypos + h, 0.0, 0.0 }, // point 0,0
+				{ xpos, ypos, 0.0, 1.0 }, // point 0,1
+				{ xpos + w, ypos, 1.0, 1.0 }, // point 1,1
+				// Triangle 2
+				{ xpos, ypos + h, 0.0, 0.0 }, // point 0,0 -> same of Triangle 1
+				{ xpos + w, ypos, 1.0, 1.0 }, // point 1,1 -> same of Triangle 1
+				{ xpos + w, ypos + h, 1.0, 0.0 } // point 1,0 -> opositive to point 0,1 of Triangle 1
+			};
+
+			// Render glyph texture over quad
+			glBindTexture(GL_TEXTURE_2D, ch.textureID);
+
+			// Update content of VBO memory
+			glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+			// Use glBufferSubData and not glBufferData
+			glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+			// Render quad
+			glDrawArrays(GL_TRIANGLES, 0, 6); // 6 vertices -> 2 triangles
+
+			// Now advance cursors for next glyph (note that advance is number of 1/64pixels)
+			// Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64pixels by 64 to get amount of pixels))
+			textPos.x += (ch.advance >> 6) * this->scale; // 6 bits
+		}
+
+		// ******* Unbind the Vertex Array and texture **********
+		glBindVertexArray(0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		// ******* Disable blending **********
+		glDisable(GL_BLEND);
+
+
 
 	}
-	void setPosition(glm::vec2 _position) {
-
+	void SetPosition(glm::vec2 position) {
+		this->pos = position;
 	}
-	void setText(std::string _text) { // set a new string to draw if needed.
-
+	void SetText(std::string text) { // set a new string to draw if needed.
+		this->text = text;
 	}
 
 };
