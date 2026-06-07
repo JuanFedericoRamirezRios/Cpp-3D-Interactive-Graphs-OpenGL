@@ -70,7 +70,7 @@ public:
 			break;
 		}
 
-		// ******* Set Vertex Buffer object **********
+		// ******* Set Vertex Buffer Object **********
 		glGenBuffers(1, &vbo); // Generate
 		glBindBuffer(GL_ARRAY_BUFFER, vbo); // Binding
 		glBufferData( // Bind the data to the buffer
@@ -80,7 +80,7 @@ public:
 			GL_STATIC_DRAW // Usage of the data: Modify the data once and use it many times. 
 		);
 
-		// ******* Set Element Buffer object **********
+		// ******* Set Element Buffer Object **********
 		glGenBuffers(1, &ebo); // Generate
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo); // Binding. GL_ELEMENT_ARRAY_BUFFER -> index data
 		glBufferData( // Bind the data to the buffer
@@ -126,7 +126,12 @@ public:
 		mat4 projectionView = camera->GetProjectionMatrix() * camera->GetViewMatrix();
 		// Send to the shader
 		GLint vpLoc = glGetUniformLocation(program, "projectionView"); // "projectionView" in Assets/Shaders/TEXTURE_MODEL.vs
-		glUniformMatrix4fv(vpLoc, 1, GL_FALSE, value_ptr(projectionView));
+		glUniformMatrix4fv(
+			vpLoc, 
+			1, // passing one matrix
+			GL_FALSE, // No need to be transposed
+			value_ptr(projectionView) // Pointer to the data
+		);
 
 		// ******* Set Model (world matrix) **********
 		model = mat4(1.0f);
