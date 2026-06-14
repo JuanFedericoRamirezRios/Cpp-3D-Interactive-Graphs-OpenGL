@@ -64,7 +64,7 @@ public:
 		
 		// ******* Set Attributes of Vertex **********
 		// Of struct VERTEX, we use pos and color, no normal:
-		glEnableVertexAttribArray(0); // First attribute in: Assets/Shaders/FLAT_MODEL.vs
+		glEnableVertexAttribArray(0); // location = 0 attribute in: Assets/Shaders/FLAT_MODEL.vs
 		glVertexAttribPointer(
 			0, // index of pos
 			3, // x, y and z
@@ -73,7 +73,7 @@ public:
 			sizeof(VERTEX), // Stride: Size of each VERTEX.
 			(GLvoid*)0 // Offset of the pos in each VERTEX.
 		);
-		glEnableVertexAttribArray(1); // Second attribute in: Assets/Shaders/FLAT_MODEL.vs
+		glEnableVertexAttribArray(1); // location = 1 attribute in: Assets/Shaders/FLAT_MODEL.vs
 		glVertexAttribPointer(
 			1, // index of color. 
 			4, // r, g, b, alpha

@@ -40,23 +40,23 @@ public:
 		this->color = color;
 		this->scale = 1.0;
 		this->program = program;
-		this->setPosition(pos);
+		this->SetPosition(pos);
 
 		// ******* Set the shader **********
 		glUseProgram(program);
 
 		// ******* Set Projection matrix **********		
-		mat4 projection = ortho( // orthographic projection don't have depth
+		mat4 orthoProjection = ortho( // orthographic projection don't have depth
 			0.0f, // left
 			static_cast<GLfloat>(800), // right: width of the window
 			0.0f, // bottom
 			static_cast<GLfloat>(600) // top: height of the window
 		);
 		glUniformMatrix4fv(
-			glGetUniformLocation(program, "projection"), // "projection" in Assets/Shaders/TEXT.vs
+			glGetUniformLocation(program, "orthoProjection"), // "orthoProjection" in Assets/Shaders/TEXT_MODEL.vs
 			1, // passing one matrix
 			GL_FALSE, // No need to be transposed
-			value_ptr(projection) // Pointer to the data
+			value_ptr(orthoProjection) // Pointer to the data
 		);
 
 		// ******* Set Font **********
@@ -76,7 +76,7 @@ public:
 				continue;
 			}
 
-			// Set texture
+			// Set texture: The text looks like a texture on top of the background.
 			GLuint texture;
 			glGenTextures(1, &texture);
 			glBindTexture(GL_TEXTURE_2D, texture);
@@ -131,10 +131,10 @@ public:
 		);
 
 		// ******* Set position attribute of Vertex **********
-		glEnableVertexAttribArray(0); // First attribute in: Assets/Shaders/TEXT.vs
+		glEnableVertexAttribArray(0); // location = 0 attribute in: Assets/Shaders/TEXT_MODEL.vs
 		glVertexAttribPointer(
 			0,  // index of pos
-			4,  // x, y, z and ...?
+			4,  // x, y, z, 1
 			GL_FLOAT, 
 			GL_FALSE,  // No normalized data
 			4 * sizeof(GLfloat),  // Stride: Size of each VERTEX.
@@ -161,12 +161,12 @@ public:
 
 		// ******* Set text color and texture **********
 		glUniform3f(
-			glGetUniformLocation(program, "textColor"), // "textColor" in Assets/Shaders/TEXT.vs
+			glGetUniformLocation(program, "colorVals"), // "colorVals" in Assets/Shaders/TEXT_MODEL.fs
 			this->color.x, 
 			this->color.y, 
 			this->color.z
 		);
-		glActiveTexture(GL_TEXTURE0);
+		glActiveTexture(GL_TEXTURE0); // The text looks like a texture on top of the background.
 
 		// ******* Set Vertex Array Object **********
 		glBindVertexArray(vao);

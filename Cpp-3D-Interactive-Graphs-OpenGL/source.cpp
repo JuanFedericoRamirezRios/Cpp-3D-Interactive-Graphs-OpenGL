@@ -15,6 +15,7 @@ GLM 1.0.3
 #include "LIGHT_RENDER.hpp"
 #include "MESH_RENDER.hpp"
 #include "TEXTURE_LOADER.hpp"
+#include "TEXT_RENDER.hpp"
 
 
 
@@ -25,10 +26,12 @@ LIGHT_RENDER* render;
 MESH_RENDER* uvSphere;
 MESH_RENDER* ground;
 MESH_RENDER* enemy;
+TEXT_RENDER* label;
+
 
 btDiscreteDynamicsWorld* dynamicsWorld; // Track of all the physics.
 
-GLuint flatShaderProgram, textureShaderProgram;
+GLuint flatShaderProgram, textureShaderProgram, textShaderProgram;
 
 GLuint sphereTexture, groundTexture;
 
@@ -142,10 +145,8 @@ void CustomUpdate(btDynamicsWorld* dynamicsWorld, btScalar dt) { // Custom updat
 		if (transformEnemy.getOrigin().x() <= -18.0f) {
 			transformEnemy.setOrigin(btVector3(18, 1, 0)); // back to the right of the viewport
 			score++;
-			
-				
-			printf("Score: %i\n", score);
-			//label->setText("Score: " + std::to_string(score));
+			//printf("Score: %i\n", score);
+			label->SetText("Score: " + std::to_string(score));
 		}
 		enemy->rigidBody->setWorldTransform(transformEnemy);
 		enemy->rigidBody->getMotionState()->setWorldTransform(transformEnemy);
@@ -179,7 +180,8 @@ void CustomUpdate(btDynamicsWorld* dynamicsWorld, btScalar dt) { // Custom updat
 				}
 				gameOver = true;
 				score = 0;
-				printf("Score: %i\n", score);
+				label->SetText("Score: " + std::to_string(score));
+				//printf("Score: %i\n", score);
 			}
 			if ((meshA->name == "hero" && meshB->name == "ground") ||
 			(meshA->name == "ground" && meshB->name	== "hero")) {
@@ -258,6 +260,7 @@ void InitGame() {
 	SHADER_LOADER shaderLoader;
 	flatShaderProgram = shaderLoader.CreateProgram("Assets/Shaders/FLAT_MODEL.vs", "Assets/Shaders/FLAT_MODEL.fs");
 	textureShaderProgram = shaderLoader.CreateProgram("Assets/Shaders/TEXTURE_MODEL.vs", "Assets/Shaders/TEXTURE_MODEL.fs");
+	textShaderProgram = shaderLoader.CreateProgram("Assets/Shaders/TEXT_MODEL.vs", "Assets/Shaders/TEXT_MODEL.fs");
 	
 	// ******** Set camera *********
 	camera = new CAMERA(45.0f, 800, 600, 0.1f, 100.0f, vec3(0.0f, 4.0f, 20.0f)); // 800x600: size of window
@@ -271,6 +274,10 @@ void InitGame() {
 	TEXTURE_LOADER textureLoader;
 	sphereTexture = textureLoader.GetTextureID("Assets/Textures/globe.jpg");
 	groundTexture = textureLoader.GetTextureID("Assets/Textures/ground.jpg");
+
+	// ******** Set score label *********
+	label = new TEXT_RENDER("Score: 0", "Assets/Fonts/gooddog.ttf", 64, vec3(1.0f, 0.0f, 0.0f), textShaderProgram); // Text height: 64
+	label->SetPosition(glm::vec2(320.0f, 500.0f));
 
 	// ******** Load physics *********
 	btBroadphaseInterface* broadPhaseCollision = new btDbvtBroadphase(); // broadphase: Using bounding boxes of the objects
@@ -293,4 +300,5 @@ void RenderScene(GLclampf red = 0.0, GLclampf green = 0.0, GLclampf blue = 0.0, 
 	uvSphere->Draw();
 	ground->Draw();
 	enemy->Draw();
+	label->Draw();
 }
