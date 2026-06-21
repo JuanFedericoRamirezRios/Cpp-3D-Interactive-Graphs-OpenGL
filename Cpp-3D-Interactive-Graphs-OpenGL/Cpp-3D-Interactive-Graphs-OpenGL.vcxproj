@@ -125,8 +125,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)Dependencies\freetype\release dll\x64;$(ProjectDir)Dependencies\glfw-3.4.bin.WIN64\lib-vc2022;$(ProjectDir)Dependencies\glew-2.3.1\lib\Release\x64;$(ProjectDir)Dependencies\bullet\lib\win64\Rls;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;glew32.lib;BulletCollision.lib;BulletDynamics.lib;LinearMath.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)Dependencies\glfw-3.4.bin.WIN64\lib-vc2022;$(ProjectDir)Dependencies\glew-2.3.1\lib\Release\x64;$(ProjectDir)Dependencies\bullet\lib\win64\Rls;$(ProjectDir)Dependencies\freetype\release dll\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;glew32.lib;BulletCollision.lib;BulletDynamics.lib;LinearMath.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

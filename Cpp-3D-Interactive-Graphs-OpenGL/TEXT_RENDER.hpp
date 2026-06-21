@@ -12,10 +12,11 @@ GLM 1.0.3
 #include "Dependencies/glm/glm/gtc/matrix_transform.hpp"
 
 #include <iostream> // This include std::cout and std::endl
-#include <ft2build.h>
-#include FT_FREETYPE_H // FT_FREETYPE_H macro just includes freetype.h
 #include <string>
 #include <map>
+
+#include <ft2build.h>
+#include FT_FREETYPE_H; // FT_FREETYPE_H macro just includes freetype.h
 
 using namespace glm;
 

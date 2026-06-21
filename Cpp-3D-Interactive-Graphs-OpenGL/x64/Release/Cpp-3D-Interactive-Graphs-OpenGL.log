@@ -17,7 +17,10 @@ D:\pCloud\pCloud\GitHubRepositories\Cpp-3D-Interactive-Graphs-OpenGL\Cpp-3D-Inte
 D:\pCloud\pCloud\GitHubRepositories\Cpp-3D-Interactive-Graphs-OpenGL\Cpp-3D-Interactive-Graphs-OpenGL\Dependencies\bullet\include\LinearMath\btIDebugDraw.h(171,85): warning C4305: 'argument': truncation from 'double' to 'const btScalar'
   (compiling source file 'source.cpp')
   
-D:\pCloud\pCloud\GitHubRepositories\Cpp-3D-Interactive-Graphs-OpenGL\Cpp-3D-Interactive-Graphs-OpenGL\TEXT_RENDER.hpp(106,29): warning C4838: conversion from 'FT_Pos' to 'GLuint' requires a narrowing conversion
+D:\pCloud\pCloud\GitHubRepositories\Cpp-3D-Interactive-Graphs-OpenGL\Cpp-3D-Interactive-Graphs-OpenGL\TEXT_RENDER.hpp(19,10): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+  (compiling source file 'source.cpp')
+  
+D:\pCloud\pCloud\GitHubRepositories\Cpp-3D-Interactive-Graphs-OpenGL\Cpp-3D-Interactive-Graphs-OpenGL\TEXT_RENDER.hpp(107,29): warning C4838: conversion from 'FT_Pos' to 'GLuint' requires a narrowing conversion
   (compiling source file 'source.cpp')
   
 D:\pCloud\pCloud\GitHubRepositories\Cpp-3D-Interactive-Graphs-OpenGL\Cpp-3D-Interactive-Graphs-OpenGL\Dependencies\bullet\include\LinearMath\btAlignedObjectArray.h(276,10): warning C5033: 'register' is no longer a supported storage class
@@ -61,10 +64,9 @@ D:\pCloud\pCloud\GitHubRepositories\Cpp-3D-Interactive-Graphs-OpenGL\Cpp-3D-Inte
               Value=btTriangleInfo
           ]
   
-source.obj : error LNK2001: unresolved external symbol FT_New_Face
-source.obj : error LNK2001: unresolved external symbol FT_Done_FreeType
-source.obj : error LNK2001: unresolved external symbol FT_Done_Face
-source.obj : error LNK2001: unresolved external symbol FT_Init_FreeType
-source.obj : error LNK2001: unresolved external symbol FT_Load_Char
-source.obj : error LNK2001: unresolved external symbol FT_Set_Pixel_Sizes
-D:\pCloud\pCloud\GitHubRepositories\Cpp-3D-Interactive-Graphs-OpenGL\x64\Release\Cpp-3D-Interactive-Graphs-OpenGL.exe : fatal error LNK1120: 6 unresolved externals
+  Generating code
+  0 of 938 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  Cpp-3D-Interactive-Graphs-OpenGL.vcxproj -> D:\pCloud\pCloud\GitHubRepositories\Cpp-3D-Interactive-Graphs-OpenGL\x64\Release\Cpp-3D-Interactive-Graphs-OpenGL.exe
