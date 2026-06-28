@@ -29,6 +29,8 @@ private:
 
 	vec3 position, scale;
 	GLuint vbo, ebo, vao, texture, program;
+	LIGHT_RENDER* light;
+	float ambientStrength, specularStrength;
 	/*
 	VBO: Vertex Buffer Object: Pos, color, normal, textureCoord. per vertex. -> GPU
 	EBO: Element Buffer Object: Store the index of each vertex
@@ -45,11 +47,51 @@ public:
 	MESH_RENDER(MESH_TYPE meshType, std::string name, CAMERA* camera, btRigidBody* rigidBody) {
 		this->name = name;
 		this->rigidBody = rigidBody;
-		
 		this->camera = camera;
+
 		scale = vec3(1.0f, 1.0f, 1.0f);
 		position = vec3(0.0f, 0.0f, 0.0f);
 
+		SetBasicVertex(meshType);
+
+		// ******* Unbind the buffer and Vertex Array as a precaution **********
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+	}
+	MESH_RENDER(MESH_TYPE meshType, std::string name, CAMERA* camera, btRigidBody* rigidBody, LIGHT_RENDER* light, float specularStrength, float ambientStrength) {
+		this->name = name;
+		this->rigidBody = rigidBody;
+		this->camera = camera;
+
+		this->light = light;
+		this->ambientStrength = ambientStrength;
+		this->specularStrength = specularStrength;
+
+		scale = vec3(1.0f, 1.0f, 1.0f);
+		position = vec3(0.0f, 0.0f, 0.0f);
+
+		SetBasicVertex(meshType);
+		
+		// ******* Set Attributes of Vertex: Normal **********
+		glEnableVertexAttribArray(2); // location = 2 attribute in: Assets/Shaders/LIT_TEXTURE_MODEL.vs
+		glVertexAttribPointer(
+			2, // index of normal
+			3, // coordinates of normal vector
+			GL_FLOAT,
+			GL_FALSE,
+			sizeof(VERTEX),
+			(void*)(offsetof(VERTEX, VERTEX::normal)) // Offset of the textureCoord in each VERTEX.
+		);
+
+
+		// ******* Unbind the buffer and Vertex Array as a precaution **********
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+	}
+	~MESH_RENDER() {
+
+	}
+	void SetBasicVertex(MESH_TYPE meshType) {
 		// ******* Set Vertex Array Object **********
 		glGenVertexArrays(1, &vao); // Generate. 1: one VAO.
 		glBindVertexArray(vao); // Binding
@@ -92,7 +134,7 @@ public:
 
 		// ******* Set Attributes of Vertex **********
 		// We use pos and textureCoord, no normal:
-		glEnableVertexAttribArray(0); // location = 0 attribute in: Assets/Shaders/TEXTURE_MODEL.vs
+		glEnableVertexAttribArray(0); // location = 0 attribute in: Assets/Shaders/TEXTURE_MODEL.vs or LIT_TEXTURE_MODEL.vs
 		glVertexAttribPointer(
 			0, // index of pos
 			3, // x, y and z
@@ -101,7 +143,7 @@ public:
 			sizeof(VERTEX), // Stride: Size of each VERTEX.
 			(GLvoid*)0 // Offset of the pos in each VERTEX.
 		);
-		glEnableVertexAttribArray(1); // location = 1 attribute in: Assets/Shaders/TEXTURE_MODEL.vs
+		glEnableVertexAttribArray(1); // location = 1 attribute in: Assets/Shaders/TEXTURE_MODEL.vs or LIT_TEXTURE_MODEL.vs
 		glVertexAttribPointer(
 			1, // index of textureCoord
 			2, // coordinates of texture of objects: U and V coordinates?
@@ -110,22 +152,15 @@ public:
 			sizeof(VERTEX),
 			(void*)(offsetof(VERTEX, VERTEX::textureCoord)) // Offset of the textureCoord in each VERTEX.
 		);
-
-		// ******* Unbind the buffer and Vertex Array as a precaution **********
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
 	}
-	~MESH_RENDER() {
-
-	}
-	void Draw() {
+	void Draw(bool withLight = false) {
 		// ******* Set the shader **********
 		glUseProgram(program);
 
 		// ******* Set Projection and View matrix **********
 		mat4 projectionView = camera->GetProjectionMatrix() * camera->GetViewMatrix();
 		// Send to the shader
-		GLint vpLoc = glGetUniformLocation(program, "projectionView"); // "projectionView" in Assets/Shaders/TEXTURE_MODEL.vs
+		GLint vpLoc = glGetUniformLocation(program, "projectionView"); // "projectionView" in Assets/Shaders/TEXTURE_MODEL.vs or LIT_TEXTURE_MODEL.vs
 		glUniformMatrix4fv(
 			vpLoc, 
 			1, // passing one matrix
@@ -166,7 +201,7 @@ public:
 		model = translation * rotation * scale;
 
 		// Send to the shader
-		GLint modelLoc = glGetUniformLocation(program, "model"); // "model" in Assets/Shaders/TEXTURE_MODEL.vs
+		GLint modelLoc = glGetUniformLocation(program, "model"); // "model" in Assets/Shaders/TEXTURE_MODEL.vs or LIT_TEXTURE_MODEL.vs
 		glUniformMatrix4fv(
 			modelLoc,
 			1, // passing one matrix
@@ -176,6 +211,27 @@ public:
 
 		// ******* Bind the texture **********
 		glBindTexture(GL_TEXTURE_2D, texture); // 2D texture
+
+		// ******* Set Lighting **********
+		if (withLight) {
+			GLuint cameraPosLoc = glGetUniformLocation(program, "cameraPos"); // in Assets/Shaders/LIT_TEXTURE_MODEL.fs
+			glUniform3f(cameraPosLoc, camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z);
+
+			GLuint lightPosLoc = glGetUniformLocation(program, "lightPos"); // in Assets/Shaders/LIT_TEXTURE_MODEL.fs
+			glUniform3f(lightPosLoc, this->light->GetPosition().x, this->light->GetPosition().y, this->light->GetPosition().z);
+
+			GLuint lightColorLoc = glGetUniformLocation(program, "lightColor"); // in Assets/Shaders/LIT_TEXTURE_MODEL.fs
+			glUniform3f(lightColorLoc, this->light->GetColor().x, this->light->GetColor().y, this->light->GetColor().z);
+
+			GLuint specularStrengthLoc = glGetUniformLocation(program, "specularStrength"); // in Assets/Shaders/LIT_TEXTURE_MODEL.fs
+			glUniform1f(specularStrengthLoc, specularStrength);
+
+			GLuint ambientStrengthLoc = glGetUniformLocation(program, "ambientStrength"); // in Assets/Shaders/LIT_TEXTURE_MODEL.fs
+			glUniform1f(ambientStrengthLoc, ambientStrength);
+		}
+		
+
+
 		
 		// ******* Draw the object **********
 		glBindVertexArray(vao);
