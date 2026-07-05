@@ -31,6 +31,8 @@ private:
 	GLuint vbo, ebo, vao, texture, program;
 	LIGHT_RENDER* light;
 	float ambientStrength, specularStrength;
+
+	bool withLight;
 	/*
 	VBO: Vertex Buffer Object: Pos, color, normal, textureCoord. per vertex. -> GPU
 	EBO: Element Buffer Object: Store the index of each vertex
@@ -45,6 +47,8 @@ public:
 	btRigidBody* rigidBody;
 
 	MESH_RENDER(MESH_TYPE meshType, std::string name, CAMERA* camera, btRigidBody* rigidBody) {
+		withLight = false;
+
 		this->name = name;
 		this->rigidBody = rigidBody;
 		this->camera = camera;
@@ -59,6 +63,8 @@ public:
 		glBindVertexArray(0);
 	}
 	MESH_RENDER(MESH_TYPE meshType, std::string name, CAMERA* camera, btRigidBody* rigidBody, LIGHT_RENDER* light, float specularStrength, float ambientStrength) {
+		withLight = true;
+		
 		this->name = name;
 		this->rigidBody = rigidBody;
 		this->camera = camera;
@@ -153,7 +159,7 @@ public:
 			(void*)(offsetof(VERTEX, VERTEX::textureCoord)) // Offset of the textureCoord in each VERTEX.
 		);
 	}
-	void Draw(bool withLight = false) {
+	void Draw() {
 		// ******* Set the shader **********
 		glUseProgram(program);
 
