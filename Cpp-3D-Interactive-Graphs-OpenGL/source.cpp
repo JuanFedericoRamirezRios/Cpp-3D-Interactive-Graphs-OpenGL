@@ -17,12 +17,10 @@ GLM 1.0.3
 #include "TEXTURE_LOADER.hpp"
 #include "TEXT_RENDER.hpp"
 
-
-
 using namespace glm;
 
 CAMERA* camera;
-LIGHT_RENDER* render;
+LIGHT_RENDER* light;
 MESH_RENDER* uvSphere;
 MESH_RENDER* ground;
 MESH_RENDER* enemy;
@@ -31,7 +29,7 @@ TEXT_RENDER* label;
 
 btDiscreteDynamicsWorld* dynamicsWorld; // Track of all the physics.
 
-GLuint flatShaderProgram, textureShaderProgram, textShaderProgram;
+GLuint flatShaderProgram, textureShaderProgram, litTextureShaderProgram, textShaderProgram;
 
 GLuint sphereTexture, groundTexture;
 
@@ -66,8 +64,9 @@ void AddRigidBodMesh() {
 	dynamicsWorld->addRigidBody(sphereRigidBody);
 
 	// ******** Sphere mesh *********
-	uvSphere = new MESH_RENDER(MESH_TYPE::UVsphere, "hero", camera, sphereRigidBody);
-	uvSphere->SetProgram(textureShaderProgram);
+	uvSphere = new MESH_RENDER(MESH_TYPE::UVsphere, "hero", camera, sphereRigidBody, light, 0.1f, 0.5f);
+	//uvSphere->SetProgram(textureShaderProgram);
+	uvSphere->SetProgram(litTextureShaderProgram);
 	uvSphere->SetTexture(sphereTexture);
 	//uvSphere->SetPosition(glm::vec3(0.0f, 0.0f, 0.0f)); // Without physics.
 	uvSphere->SetScale(vec3(1.0f));
@@ -94,8 +93,9 @@ void AddRigidBodMesh() {
 	dynamicsWorld->addRigidBody(groundRigidBody);
 
 	// ******** Ground mesh *********
-	ground = new MESH_RENDER(MESH_TYPE::Cube, "ground", camera, groundRigidBody);
-	ground->SetProgram(textureShaderProgram);
+	ground = new MESH_RENDER(MESH_TYPE::Cube, "ground", camera, groundRigidBody, light, 0.1f, 0.5f);
+	//ground->SetProgram(textureShaderProgram);
+	ground->SetProgram(litTextureShaderProgram);
 	ground->SetTexture(groundTexture);
 	ground->SetScale(vec3(4.0f, 0.5f, 4.0f));
 	groundRigidBody->setUserPointer(ground);
@@ -123,8 +123,9 @@ void AddRigidBodMesh() {
 
 	// ******** Enemy mesh *********
 	// GLuint cubeTexture = textureLoader.GetTextureID("Assets/Textures/ground.jpg");
-	enemy = new MESH_RENDER(MESH_TYPE::Cube, "enemy", camera, cubeRigidBody);
-	enemy->SetProgram(textureShaderProgram);
+	enemy = new MESH_RENDER(MESH_TYPE::Cube, "enemy", camera, cubeRigidBody, light, 0.1f, 0.5f);
+	//enemy->SetProgram(textureShaderProgram);
+	enemy->SetProgram(litTextureShaderProgram);
 	enemy->SetTexture(groundTexture);
 	enemy->SetScale(vec3(1.0f, 1.0f, 1.0f));
 	cubeRigidBody->setUserPointer(enemy);
@@ -248,7 +249,7 @@ int main(int argc, char** argv) {
 	glfwTerminate();
 
 	delete camera;
-	delete render;
+	delete light;
 
 	return 0;
 
@@ -260,15 +261,17 @@ void InitGame() {
 	SHADER_LOADER shaderLoader;
 	flatShaderProgram = shaderLoader.CreateProgram("Assets/Shaders/FLAT_MODEL.vs", "Assets/Shaders/FLAT_MODEL.fs");
 	textureShaderProgram = shaderLoader.CreateProgram("Assets/Shaders/TEXTURE_MODEL.vs", "Assets/Shaders/TEXTURE_MODEL.fs");
+	litTextureShaderProgram = shaderLoader.CreateProgram("Assets/Shaders/LIT_TEXTURE_MODEL.vs", "Assets/Shaders/LIT_TEXTURE_MODEL.fs");
 	textShaderProgram = shaderLoader.CreateProgram("Assets/Shaders/TEXT_MODEL.vs", "Assets/Shaders/TEXT_MODEL.fs");
 	
 	// ******** Set camera *********
 	camera = new CAMERA(45.0f, 800, 600, 0.1f, 100.0f, vec3(0.0f, 4.0f, 20.0f)); // 800x600: size of window
 
-	// ******** Example tringle mesh without textures *********
-	render = new LIGHT_RENDER(MESH_TYPE::Triangle, camera);
-	render->SetProgram(flatShaderProgram);
-	render->SetPositon(vec3(0.0f, 0.0f, 0.0f)); // triangle in the center of the world
+	// ******** Light mesh without texture *********
+	light = new LIGHT_RENDER(MESH_TYPE::UVsphere, camera);
+	light->SetProgram(flatShaderProgram);
+	light->SetPositon(vec3(0.0f, 10.0f, 0.0f));
+	light->SetColor(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
 	// ******** Texture loader *********
 	TEXTURE_LOADER textureLoader;
@@ -296,7 +299,7 @@ void RenderScene(GLclampf red = 0.0, GLclampf green = 0.0, GLclampf blue = 0.0, 
 	glClearColor(red, green, blue, alpha); // Red.  The buffers need to be cleared in every frame.
 	
 	// Draw game objects
-	//render->Draw();
+	light->Draw();
 	uvSphere->Draw();
 	ground->Draw();
 	enemy->Draw();
