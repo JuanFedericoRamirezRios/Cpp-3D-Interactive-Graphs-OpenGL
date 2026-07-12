@@ -13,7 +13,7 @@ GLM 1.0.3
 
 #include <vector>
 #include "CAMERA.hpp" // Get location, view and projection matrices.
-#include "LIGHT_RENDER.hpp"
+//#include "LIGHT_RENDER.hpp"
 
 #include <btBulletDynamicsCommon.h>
 

@@ -9,8 +9,6 @@ GLM 1.0.3
 #include <btBulletDynamicsCommon.h> // Physics engine.
 #include <chrono> // Library of C++ to obtain current time -> Physic, animations.
 
-
-
 #include "SHADER_LOADER.hpp"
 #include "CAMERA.hpp"
 #include "LIGHT_RENDER.hpp"
@@ -269,7 +267,7 @@ void InitGame() {
 	camera = new CAMERA(45.0f, 800, 600, 0.1f, 100.0f, vec3(0.0f, 4.0f, 20.0f)); // 800x600: size of window
 
 	// ******** Light mesh without texture *********
-	light = new LIGHT_RENDER(MESH_TYPE::UVsphere, camera);
+	light = new LIGHT_RENDER(MESH_TYPE::Triangle, camera);
 	light->SetProgram(flatShaderProgram);
 	light->SetPositon(vec3(0.0f, 10.0f, 0.0f));
 	light->SetColor(vec4(1.0f, 1.0f, 1.0f, 1.0f));
