@@ -11,7 +11,8 @@ GLM 1.0.3
 
 #include "SHADER_LOADER.hpp"
 #include "CAMERA.hpp"
-#include "LIGHT_RENDER.hpp"
+//#include "LIGHT_RENDER.hpp"
+#include "POINT_LIGHT.hpp"
 #include "MESH_RENDER.hpp"
 #include "TEXTURE_LOADER.hpp"
 #include "TEXT_RENDER.hpp"
@@ -19,7 +20,7 @@ GLM 1.0.3
 using namespace glm;
 
 CAMERA* camera;
-LIGHT_RENDER* light;
+POINT_LIGHT* pointLight;
 MESH_RENDER* uvSphere;
 MESH_RENDER* ground;
 MESH_RENDER* enemy;
@@ -63,7 +64,7 @@ void AddRigidBodMesh() {
 	dynamicsWorld->addRigidBody(sphereRigidBody);
 
 	// ******** Sphere mesh *********
-	uvSphere = new MESH_RENDER(MESH_TYPE::UVsphere, "hero", camera, sphereRigidBody, light, 0.1f, 0.5f);
+	uvSphere = new MESH_RENDER(MESH_TYPE::UVsphere, "hero", camera, sphereRigidBody, pointLight, 0.1f, 0.5f);
 	//uvSphere->SetProgram(textureShaderProgram);
 	uvSphere->SetProgram(litTextureShaderProgram);
 	uvSphere->SetTexture(sphereTexture);
@@ -92,7 +93,7 @@ void AddRigidBodMesh() {
 	dynamicsWorld->addRigidBody(groundRigidBody);
 
 	// ******** Ground mesh *********
-	ground = new MESH_RENDER(MESH_TYPE::Cube, "ground", camera, groundRigidBody, light, 0.1f, 0.5f);
+	ground = new MESH_RENDER(MESH_TYPE::Cube, "ground", camera, groundRigidBody, pointLight, 0.1f, 0.5f);
 	//ground->SetProgram(textureShaderProgram);
 	ground->SetProgram(litTextureShaderProgram);
 	ground->SetTexture(groundTexture);
@@ -122,7 +123,7 @@ void AddRigidBodMesh() {
 
 	// ******** Enemy mesh *********
 	// GLuint cubeTexture = textureLoader.GetTextureID("Assets/Textures/ground.jpg");
-	enemy = new MESH_RENDER(MESH_TYPE::Cube, "enemy", camera, cubeRigidBody, light, 0.1f, 0.5f);
+	enemy = new MESH_RENDER(MESH_TYPE::Cube, "enemy", camera, cubeRigidBody, pointLight, 0.1f, 0.5f);
 	//enemy->SetProgram(textureShaderProgram);
 	enemy->SetProgram(litTextureShaderProgram);
 	enemy->SetTexture(groundTexture);
@@ -248,7 +249,7 @@ int main(int argc, char** argv) {
 	glfwTerminate();
 
 	delete camera;
-	delete light;
+	delete pointLight;
 
 	return 0;
 
@@ -267,10 +268,11 @@ void InitGame() {
 	camera = new CAMERA(45.0f, 800, 600, 0.1f, 100.0f, vec3(0.0f, 4.0f, 20.0f)); // 800x600: size of window
 
 	// ******** Light mesh without texture *********
-	light = new LIGHT_RENDER(MESH_TYPE::Triangle, camera);
-	light->SetProgram(flatShaderProgram);
-	light->SetPositon(vec3(0.0f, 10.0f, 0.0f));
-	light->SetColor(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	//pointLight = new LIGHT_RENDER(MESH_TYPE::Triangle, camera);
+	//pointLight->SetProgram(flatShaderProgram);
+	pointLight = new POINT_LIGHT(vec3(0.0f, 10.0f, 0.0f), vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	//pointLight->SetPositon(vec3(0.0f, 10.0f, 0.0f));
+	//pointLight->SetColor(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
 	// ******** Texture loader *********
 	TEXTURE_LOADER textureLoader;
@@ -298,7 +300,7 @@ void RenderScene(GLclampf red = 0.0, GLclampf green = 0.0, GLclampf blue = 0.0, 
 	glClearColor(red, green, blue, alpha); // Red.  The buffers need to be cleared in every frame.
 	
 	// Draw game objects
-	light->Draw();
+	//pointLight->Draw();
 	uvSphere->Draw();
 	ground->Draw();
 	enemy->Draw();

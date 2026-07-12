@@ -14,6 +14,8 @@ GLM 1.0.3
 #include <vector>
 #include "CAMERA.hpp" // Get location, view and projection matrices.
 //#include "LIGHT_RENDER.hpp"
+#include "POINT_LIGHT.hpp"
+#include "MESH_LOADER.hpp"
 
 #include <btBulletDynamicsCommon.h>
 
@@ -29,7 +31,7 @@ private:
 
 	vec3 position, scale;
 	GLuint vbo, ebo, vao, texture, program;
-	LIGHT_RENDER* light;
+	POINT_LIGHT* light;
 	float ambientStrength, specularStrength;
 
 	bool withLight;
@@ -62,7 +64,7 @@ public:
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 	}
-	MESH_RENDER(MESH_TYPE meshType, std::string name, CAMERA* camera, btRigidBody* rigidBody, LIGHT_RENDER* light, float specularStrength, float ambientStrength) {
+	MESH_RENDER(MESH_TYPE meshType, std::string name, CAMERA* camera, btRigidBody* rigidBody, POINT_LIGHT* light, float specularStrength, float ambientStrength) {
 		withLight = true;
 		
 		this->name = name;
