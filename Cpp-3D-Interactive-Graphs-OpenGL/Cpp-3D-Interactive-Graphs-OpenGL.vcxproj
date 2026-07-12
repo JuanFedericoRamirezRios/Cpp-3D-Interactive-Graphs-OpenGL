@@ -147,8 +147,12 @@
   <ItemGroup>
     <None Include="Assets\Shaders\FLAT_MODEL.fs" />
     <None Include="Assets\Shaders\FLAT_MODEL.vs" />
+    <None Include="Assets\Shaders\LIT_TEXTURE_MODEL.fs" />
+    <None Include="Assets\Shaders\LIT_TEXTURE_MODEL.vs" />
     <None Include="Assets\Shaders\TEXTURE_MODEL.fs" />
     <None Include="Assets\Shaders\TEXTURE_MODEL.vs" />
+    <None Include="Assets\Shaders\TEXT_MODEL.fs" />
+    <None Include="Assets\Shaders\TEXT_MODEL.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

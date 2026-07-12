@@ -60,5 +60,17 @@
     <None Include="Assets\Shaders\TEXTURE_MODEL.vs">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="Assets\Shaders\LIT_TEXTURE_MODEL.fs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Assets\Shaders\LIT_TEXTURE_MODEL.vs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Assets\Shaders\TEXT_MODEL.fs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Assets\Shaders\TEXT_MODEL.vs">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
