@@ -41,6 +41,8 @@ private:
 	VAO: Vertex Array Object: VBOs and attribures per object
 	*/
 
+
+
 	
 
 public:
@@ -60,7 +62,7 @@ public:
 
 		SetBasicVertex(meshType);
 
-		// ******* Unbind the buffer and Vertex Array as a precaution **********
+		// + ******* Unbind the buffer and Vertex Array as a precaution **********
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 	}
@@ -80,7 +82,7 @@ public:
 
 		SetBasicVertex(meshType);
 		
-		// ******* Set Attributes of Vertex: Normal **********
+		// + ******* Set Attributes of Vertex: Normal **********
 		glEnableVertexAttribArray(2); // location = 2 attribute in: Assets/Shaders/LIT_TEXTURE_MODEL.vs
 		glVertexAttribPointer(
 			2, // index of normal
@@ -92,7 +94,7 @@ public:
 		);
 
 
-		// ******* Unbind the buffer and Vertex Array as a precaution **********
+		// + ******* Unbind the buffer and Vertex Array as a precaution **********
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 	}
@@ -100,11 +102,11 @@ public:
 
 	}
 	void SetBasicVertex(MESH_TYPE meshType) {
-		// ******* Set Vertex Array Object **********
+		// + ******* Set Vertex Array Object **********
 		glGenVertexArrays(1, &vao); // Generate. 1: one VAO.
 		glBindVertexArray(vao); // Binding
 
-		// ******* Load Vertex data **********
+		// + ******* Load Vertex data ********** +++++++
 		switch (meshType) {
 		case Triangle:
 			MESH_LOADER::LoadTriangleVertices(vertices, indices);
@@ -120,7 +122,7 @@ public:
 			break;
 		}
 
-		// ******* Set Vertex Buffer Object **********
+		// + ******* Set Vertex Buffer Object ********** ++++++++++
 		glGenBuffers(1, &vbo); // Generate
 		glBindBuffer(GL_ARRAY_BUFFER, vbo); // Binding
 		glBufferData( // Bind the data to the buffer
@@ -130,7 +132,7 @@ public:
 			GL_STATIC_DRAW // Usage of the data: Modify the data once and use it many times. 
 		);
 
-		// ******* Set Element Buffer Object **********
+		// + ******* Set Element Buffer Object **********
 		glGenBuffers(1, &ebo); // Generate
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo); // Binding. GL_ELEMENT_ARRAY_BUFFER -> index data
 		glBufferData( // Bind the data to the buffer
@@ -140,7 +142,7 @@ public:
 			GL_STATIC_DRAW // Usage of the data: Modify the data once and use it many times. 
 		);
 
-		// ******* Set Attributes of Vertex **********
+		// + ******* Set Attributes of Vertex **********
 		// We use pos and textureCoord, no normal:
 		glEnableVertexAttribArray(0); // location = 0 attribute in: Assets/Shaders/TEXTURE_MODEL.vs or LIT_TEXTURE_MODEL.vs
 		glVertexAttribPointer(
@@ -162,7 +164,7 @@ public:
 		);
 	}
 	void Draw() {
-		// ******* Set the shader **********
+		// + ******* Set the shader **********
 		glUseProgram(program);
 
 		// ******* Set Projection and View matrix **********
@@ -241,7 +243,7 @@ public:
 
 
 		
-		// ******* Draw the object **********
+		// + ******* Draw the object **********
 		glBindVertexArray(vao);
 		glDrawElements(
 			GL_TRIANGLES, // Mode: GL_LINES | GL_TRIANGLES
@@ -250,7 +252,7 @@ public:
 			0 // location where the indices are stored
 		);
 
-		// ******* Unbind the vertex array **********
+		// ******* + Unbind the vertex array **********
 		glBindVertexArray(0);
 	}
 	void SetPosition(vec3 position) {

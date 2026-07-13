@@ -32,11 +32,11 @@ private:
 public:
 	LIGHT_RENDER(MESH_TYPE meshType, CAMERA* camera) {
 		this->camera = camera;
-		// ******* Set Vertex Array Object **********
+		// + ******* Set Vertex Array Object **********
 		glGenVertexArrays(1, &vao); // Generate. 1: one VAO.
 		glBindVertexArray(vao); // Binding
 
-		// ******* Load Vertex data **********
+		// + ******* Load Vertex data **********
 		switch (meshType) {
 		case Triangle:
 			MESH_LOADER::LoadTriangleVertices(vertices, indices);
@@ -52,7 +52,7 @@ public:
 			break;
 		}
 
-		// ******* Set Vertex Buffer object **********
+		// + ******* Set Vertex Buffer object **********
 		glGenBuffers(1, &vbo); // Generate
 		glBindBuffer(GL_ARRAY_BUFFER, vbo); // Binding
 		glBufferData( // Bind the data to the buffer
@@ -62,7 +62,7 @@ public:
 			GL_STATIC_DRAW // Usage of the data: Modify the data once and use it many times. 
 		);
 		
-		// ******* Set Attributes of Vertex **********
+		// + ******* Set Attributes of Vertex **********
 		// Of struct VERTEX, we use pos and color, no normal:
 		glEnableVertexAttribArray(0); // location = 0 attribute in: Assets/Shaders/FLAT_MODEL.vs
 		glVertexAttribPointer(
@@ -83,7 +83,7 @@ public:
 			(void*)(offsetof(VERTEX, VERTEX::color)) // Offset of the color in each VERTEX.
 		);
 
-		// ******* Set Element Buffer object **********
+		// + ******* Set Element Buffer object **********
 		glGenBuffers(1, &ebo); // Generate
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo); // Binding. GL_ELEMENT_ARRAY_BUFFER -> index data
 		glBufferData( // Bind the data to the buffer
@@ -93,7 +93,7 @@ public:
 			GL_STATIC_DRAW // Usage of the data: Modify the data once and use it many times. 
 		);
 
-		// ******* Unbind the buffer and Vertex Array as a precaution **********
+		// + ******* Unbind the buffer and Vertex Array as a precaution **********
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 
@@ -102,10 +102,10 @@ public:
 
 	}
 	void Draw() {
-		// ******* Set the shader **********
+		// + ******* Set the shader **********
 		glUseProgram(program);
 
-		// ******* Set the Model matrix **********
+		// + ******* Set the Model matrix **********
 		mat4 model = mat4(1.0f); // model = World matrix = Identity matrix
 		model = translate(mat4(1.0), position); // translate the object to the required position
 		// Send to the shader
@@ -117,19 +117,19 @@ public:
 			value_ptr(model) // Pointer to the data
 		);
 		
-		// ******* Set the View matrix **********
+		// + ******* Set the View matrix **********
 		mat4 view = camera->GetViewMatrix();
 		// Send to the shader
 		GLint vLoc = glGetUniformLocation(program, "view"); // "view" in Assets/Shaders/FLAT_MODEL.vs
 		glUniformMatrix4fv(vLoc, 1, GL_FALSE, value_ptr(view));
 
-		// ******* Set the Projection matrix **********
+		// + ******* Set the Projection matrix **********
 		mat4 proj = camera->GetProjectionMatrix();
 		// Send to the shader
 		GLint pLoc = glGetUniformLocation(program, "projection"); // "projection" in Assets/Shaders/FLAT_MODEL.vs
 		glUniformMatrix4fv(pLoc, 1, GL_FALSE, glm::value_ptr(proj));
 
-		// ******* Draw the object **********
+		// + ******* Draw the object **********
 		glBindVertexArray(vao);
 		glDrawElements(
 			GL_TRIANGLES, // Mode: GL_LINES | GL_TRIANGLES
@@ -138,7 +138,7 @@ public:
 			0 // location where the indices are stored
 		);
 
-		// ******* Unbind the vertex array and the program **********
+		// + ******* Unbind the vertex array and the program **********
 		glBindVertexArray(0); 
 		glUseProgram(0); 
 		//glUseProgram(0);
