@@ -98,8 +98,14 @@ public:
 	void SetPosition(vec3 position) {
 		this->pos = position;
 	}
+	vec3 GetPosition() {
+		return pos;
+	}
 	void SetScale(vec3 scale) {
 		this->scale = scale;
+	}
+	vec3 GetScale() {
+		return scale;
 	}
 	/*void SetCamera(CAMERA* camera) {
 		this->camera = camera;
@@ -405,18 +411,7 @@ public:
 		glBindVertexArray(0);
 		glUseProgram(0);
 	}
-	void SetPosition(vec3 position) {
-		this->pos = position;
-	}
-	vec3 GetPosition() {
-		return pos;
-	}
-	void SetScale(vec3 scale) {
-		this->scale = scale;
-	}
-	vec3 GetScale() {
-		return scale;
-	}
+	
 	vec4 GetColor() {
 		return vertices[0].color;
 	}
