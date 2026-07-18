@@ -21,7 +21,7 @@ GLM 1.0.3
 
 using namespace glm;
 
-enum RENDER {
+enum RENDER_TYPE {
 	empty = 0,
 	onlyColor = 1,
 	onlyTexture = 2,
@@ -34,7 +34,7 @@ private:
 	std::vector<VERTEX> vertices;
 	std::vector<GLuint> indices;
 
-	RENDER render = empty;
+	//RENDER render = empty;
 	
 
 	mat4 model; // model = World matrix
@@ -42,6 +42,9 @@ private:
 	vec4 color;
 	float ambientStrength, specularStrength;
 	bool withLight;
+	
+	RENDER_TYPE renderType = empty;
+	//bool withRender = false;
 
 	//CAMERA* camera;
 	POINT_LIGHT* light;
@@ -121,22 +124,17 @@ public:
 			break;
 		}
 	}
-	void SetVertex(std::string filePath) {
+	void SetVertex(std::string filePath="") {
+		MESH_LOADER::LoadCubeVertices(vertices, indices);
 		// ******* Load Vertex using a json file **********
 	}
-	void SetColor(vec4 color) {
-		if (render == empty || render == onlyColor) {
-			render = onlyColor;
-		}
-		else {
-			std::cerr << "Error: Render defined" << std::endl;
+	void SetDefaultColor() { // Do not change the color.
+		if (renderType != empty) {
+			std::cerr << "Error: Object " << name << " can not overwrite the render." << std::endl;
 			return;
 		}
-		
-		
-		this->color = color;
-		for (VERTEX vertex : vertices) {
-			vertex.color = color;
+		else {
+			renderType = onlyColor;
 		}
 
 		SetBuffersObject();
@@ -166,14 +164,29 @@ public:
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 	}
-	void SetTexture(GLuint texture) {
-		if (render == empty || render == onlyTexture) {
-			render = onlyTexture;
-		}
-		else {
-			std::cerr << "Error: Render defined" << std::endl;
+	void SetColor(vec4 color) {
+		if (renderType != empty) {
+			std::cerr << "Error: Object " << name << " can not overwrite the render." << std::endl;
 			return;
 		}
+				
+		
+		this->color = color;
+		for (VERTEX vertex : vertices) {
+			vertex.color = color;
+		}
+		SetDefaultColor();
+		
+	}
+	void SetTexture(GLuint texture) {
+		if (renderType != empty) {
+			std::cerr << "Error: Object " << name << " can not overwrite the render." << std::endl;
+			return;
+		}
+		else {
+			renderType = onlyTexture;
+		}
+
 		this->texture = texture;
 
 		SetBuffersObject();
@@ -204,14 +217,27 @@ public:
 		glBindVertexArray(0);
 
 	}
-	void SetTextureLit(GLuint texture, POINT_LIGHT* light) {
-		if (render == empty || render == textureLit) {
-			render = textureLit;
-		}
-		else {
-			std::cerr << "Error: Render defined" << std::endl;
+	void SetText() {
+		if (renderType != empty) {
+			std::cerr << "Error: Object " << name << " can not overwrite the render." << std::endl;
 			return;
 		}
+		else {
+			renderType = text;
+		}
+
+
+
+	}
+	void SetTextureLit(GLuint texture, POINT_LIGHT* light) {
+		if (renderType != empty) {
+			std::cerr << "Error: Object " << name << " can not overwrite the render." << std::endl;
+			return;
+		}
+		else {
+			renderType = textureLit;
+		}
+
 		this->texture = texture;
 		this->light = light;
 
@@ -254,15 +280,15 @@ public:
 	
 
 	void Draw(GLuint program, CAMERA* camera) {
-		if (render == empty) {
-			std::cerr << "Error: Render no defined" << std::endl;
+		if (renderType == empty) {
+			std::cerr << "Error: Object " << name << " do not have render." << std::endl;
 			return;
 		}
 
 		// ******* Set the shader **********
 		glUseProgram(program);
 
-		if (render == onlyColor) {
+		if (renderType == onlyColor) {
 			// ******* Set the Model matrix **********
 			mat4 model = mat4(1.0f); // model = World matrix = Identity matrix
 			model = translate(mat4(1.0), pos); // translate the object to the required position
@@ -286,6 +312,15 @@ public:
 			// Send to the shader
 			GLint pLoc = glGetUniformLocation(program, "projection"); // "projection" in Assets/Shaders/FLAT_MODEL.vs
 			glUniformMatrix4fv(pLoc, 1, GL_FALSE, glm::value_ptr(proj));
+		}
+		else if (renderType == onlyTexture) {
+
+		}
+		else if (renderType == text) {
+
+		}
+		else if (renderType == textureLit) {
+
 		}
 
 		
