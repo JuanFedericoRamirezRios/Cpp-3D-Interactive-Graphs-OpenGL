@@ -25,8 +25,8 @@ enum RENDER_TYPE {
 	empty = 0,
 	onlyColor = 1,
 	onlyTexture = 2,
-	text = 3,
-	textureLit = 4
+	textureLit = 3,
+	text = 4
 };
 
 class GAME_OBJECT {
@@ -37,11 +37,11 @@ private:
 	//RENDER render = empty;
 	
 
-	mat4 model; // model = World matrix
+	//mat4 model; // model = World matrix
 	vec3 pos, scale;
-	vec4 color;
+	//vec4 color;
 	float ambientStrength, specularStrength;
-	bool withLight;
+	//bool withLight;
 	
 	RENDER_TYPE renderType = empty;
 	//bool withRender = false;
@@ -85,7 +85,7 @@ private:
 public:
 	std::string name = "";
 
-	btRigidBody* rigidBody;
+	//btRigidBody* rigidBody;
 
 	GAME_OBJECT(std::string name,vec3 position = vec3(0.0f, 0.0f, 0.0f), vec3 scale = vec3(1.0f, 1.0f, 1.0f)) {
 		this->name = name;
@@ -128,7 +128,7 @@ public:
 		MESH_LOADER::LoadCubeVertices(vertices, indices);
 		// ******* Load Vertex using a json file **********
 	}
-	void SetDefaultColor() { // Do not change the color.
+	void SetDefaultColor() { // Color of VERTEX.
 		if (renderType != empty) {
 			std::cerr << "Error: Object " << name << " can not overwrite the render." << std::endl;
 			return;
@@ -171,7 +171,7 @@ public:
 		}
 				
 		
-		this->color = color;
+		//this->color = color;
 		for (VERTEX vertex : vertices) {
 			vertex.color = color;
 		}
@@ -217,19 +217,7 @@ public:
 		glBindVertexArray(0);
 
 	}
-	void SetText() {
-		if (renderType != empty) {
-			std::cerr << "Error: Object " << name << " can not overwrite the render." << std::endl;
-			return;
-		}
-		else {
-			renderType = text;
-		}
-
-
-
-	}
-	void SetTextureLit(GLuint texture, POINT_LIGHT* light) {
+	void SetTextureLit(GLuint texture, POINT_LIGHT* light, float specularStrength, float ambientStrength) {
 		if (renderType != empty) {
 			std::cerr << "Error: Object " << name << " can not overwrite the render." << std::endl;
 			return;
@@ -240,6 +228,8 @@ public:
 
 		this->texture = texture;
 		this->light = light;
+		this->ambientStrength = ambientStrength;
+		this->specularStrength = specularStrength;
 
 		SetBuffersObject();
 
@@ -277,9 +267,20 @@ public:
 		glBindVertexArray(0);
 
 	}
-	
+	void SetText() {
+		if (renderType != empty) {
+			std::cerr << "Error: Object " << name << " can not overwrite the render." << std::endl;
+			return;
+		}
+		else {
+			renderType = text;
+		}
 
-	void Draw(GLuint program, CAMERA* camera) {
+
+
+	}
+
+	void Draw(GLuint program, CAMERA* camera, btRigidBody* rigidBody) {
 		if (renderType == empty) {
 			std::cerr << "Error: Object " << name << " do not have render." << std::endl;
 			return;
@@ -313,15 +314,81 @@ public:
 			GLint pLoc = glGetUniformLocation(program, "projection"); // "projection" in Assets/Shaders/FLAT_MODEL.vs
 			glUniformMatrix4fv(pLoc, 1, GL_FALSE, glm::value_ptr(proj));
 		}
-		else if (renderType == onlyTexture) {
+		else if ((renderType == onlyTexture) || (renderType == textureLit)) {
+			// ******* Set Projection and View matrix **********
+			mat4 projectionView = camera->GetProjectionMatrix() * camera->GetViewMatrix();
+			// Send to the shader
+			GLint vpLoc = glGetUniformLocation(program, "projectionView"); // "projectionView" in Assets/Shaders/TEXTURE_MODEL.vs or LIT_TEXTURE_MODEL.vs
+			glUniformMatrix4fv(
+				vpLoc,
+				1, // passing one matrix
+				GL_FALSE, // No need to be transposed
+				value_ptr(projectionView) // Pointer to the data
+			);
 
+			// ******* Set Model (world matrix) **********
+			mat4 model = mat4(1.0f);
+			mat4 scale = glm::scale(mat4(1.0f), this->scale);
+			// Without physics:
+			//mat4 translation = translate(mat4(1.0f), position);
+			//model = translation * scale;
+			// With physics:
+			btTransform transformation;
+			rigidBody->getMotionState()->getWorldTransform(transformation); // get the transformation from the rigidBody
+			btQuaternion rotationQuat = transformation.getRotation();
+			btVector3 translateVec = transformation.getOrigin();
+			mat4 rotation = glm::rotate(
+				mat4(1.0f),
+				rotationQuat.getAngle(),
+				vec3(
+					rotationQuat.getAxis().getX(),
+					rotationQuat.getAxis().getY(),
+					rotationQuat.getAxis().getZ()
+				)
+			);
+			mat4 translation = glm::translate(
+				mat4(1.0f),
+				vec3(
+					translateVec.getX(),
+					translateVec.getY(),
+					translateVec.getZ()
+				)
+			);
+			model = translation * rotation * scale;
+			// Send to the shader
+			GLint modelLoc = glGetUniformLocation(program, "model"); // "model" in Assets/Shaders/TEXTURE_MODEL.vs or LIT_TEXTURE_MODEL.vs
+			glUniformMatrix4fv(
+				modelLoc,
+				1, // passing one matrix
+				GL_FALSE, // No need to be transposed
+				value_ptr(model) // Pointer to the data
+			);
+
+			// ******* Bind the texture **********
+			glBindTexture(GL_TEXTURE_2D, texture); // 2D texture
+
+			// ******* Set Lighting **********
+			if (renderType == textureLit) {
+				GLuint cameraPosLoc = glGetUniformLocation(program, "cameraPos"); // in Assets/Shaders/LIT_TEXTURE_MODEL.fs
+				glUniform3f(cameraPosLoc, camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z);
+
+				GLuint lightPosLoc = glGetUniformLocation(program, "lightPos"); // in Assets/Shaders/LIT_TEXTURE_MODEL.fs
+				glUniform3f(lightPosLoc, this->light->GetPosition().x, this->light->GetPosition().y, this->light->GetPosition().z);
+
+				GLuint lightColorLoc = glGetUniformLocation(program, "lightColor"); // in Assets/Shaders/LIT_TEXTURE_MODEL.fs
+				glUniform3f(lightColorLoc, this->light->GetColor().x, this->light->GetColor().y, this->light->GetColor().z);
+
+				GLuint specularStrengthLoc = glGetUniformLocation(program, "specularStrength"); // in Assets/Shaders/LIT_TEXTURE_MODEL.fs
+				glUniform1f(specularStrengthLoc, specularStrength);
+
+				GLuint ambientStrengthLoc = glGetUniformLocation(program, "ambientStrength"); // in Assets/Shaders/LIT_TEXTURE_MODEL.fs
+				glUniform1f(ambientStrengthLoc, ambientStrength);
+			}
 		}
 		else if (renderType == text) {
 
 		}
-		else if (renderType == textureLit) {
-
-		}
+		
 
 		
 
@@ -338,17 +405,19 @@ public:
 		glBindVertexArray(0);
 		glUseProgram(0);
 	}
-
+	void SetPosition(vec3 position) {
+		this->pos = position;
+	}
 	vec3 GetPosition() {
 		return pos;
 	}
-	vec4 GetColor() {
-		return color;
+	void SetScale(vec3 scale) {
+		this->scale = scale;
 	}
-
-
-
-
-
-
+	vec3 GetScale() {
+		return scale;
+	}
+	vec4 GetColor() {
+		return vertices[0].color;
+	}
 };

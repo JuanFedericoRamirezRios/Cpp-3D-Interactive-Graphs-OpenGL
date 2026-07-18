@@ -167,7 +167,7 @@ public:
 		// + ******* Set the shader **********
 		glUseProgram(program);
 
-		// ******* Set Projection and View matrix **********
+		// + ******* Set Projection and View matrix **********
 		mat4 projectionView = camera->GetProjectionMatrix() * camera->GetViewMatrix();
 		// Send to the shader
 		GLint vpLoc = glGetUniformLocation(program, "projectionView"); // "projectionView" in Assets/Shaders/TEXTURE_MODEL.vs or LIT_TEXTURE_MODEL.vs
@@ -178,14 +178,12 @@ public:
 			value_ptr(projectionView) // Pointer to the data
 		);
 
-		// ******* Set Model (world matrix) **********
+		// + ******* Set Model (world matrix) **********
 		model = mat4(1.0f);
 		mat4 scale = glm::scale(mat4(1.0f), this->scale);
-
 		// Without physics:
 		//mat4 translation = translate(mat4(1.0f), position);
 		//model = translation * scale;
-
 		// With physics:
 		btTransform transformation;
 		rigidBody->getMotionState()->getWorldTransform(transformation); // get the transformation from the rigidBody
@@ -209,7 +207,6 @@ public:
 			)
 		);
 		model = translation * rotation * scale;
-
 		// Send to the shader
 		GLint modelLoc = glGetUniformLocation(program, "model"); // "model" in Assets/Shaders/TEXTURE_MODEL.vs or LIT_TEXTURE_MODEL.vs
 		glUniformMatrix4fv(
@@ -219,10 +216,10 @@ public:
 			value_ptr(model) // Pointer to the data
 		);
 
-		// ******* Bind the texture **********
+		// + ******* Bind the texture **********
 		glBindTexture(GL_TEXTURE_2D, texture); // 2D texture
 
-		// ******* Set Lighting **********
+		// + ******* Set Lighting **********
 		if (withLight) {
 			GLuint cameraPosLoc = glGetUniformLocation(program, "cameraPos"); // in Assets/Shaders/LIT_TEXTURE_MODEL.fs
 			glUniform3f(cameraPosLoc, camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z);
@@ -252,7 +249,7 @@ public:
 			0 // location where the indices are stored
 		);
 
-		// ******* + Unbind the vertex array **********
+		// + ******* Unbind the vertex array **********
 		glBindVertexArray(0);
 	}
 	void SetPosition(vec3 position) {
