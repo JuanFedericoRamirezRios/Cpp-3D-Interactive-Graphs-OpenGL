@@ -184,6 +184,9 @@ public:
 		SetDefaultColor();
 		
 	}
+	vec4 GetColor() {
+		return vertices[0].color;
+	}
 	void SetTexture(GLuint texture) {
 		if (renderType != empty) {
 			std::cerr << "Error: Object " << name << " can not overwrite the render." << std::endl;
@@ -412,7 +415,5 @@ public:
 		glUseProgram(0);
 	}
 	
-	vec4 GetColor() {
-		return vertices[0].color;
-	}
+	
 };

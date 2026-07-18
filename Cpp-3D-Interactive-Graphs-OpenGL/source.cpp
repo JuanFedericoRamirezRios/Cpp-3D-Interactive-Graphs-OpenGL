@@ -14,6 +14,7 @@ GLM 1.0.3
 //#include "LIGHT_RENDER.hpp"
 #include "POINT_LIGHT.hpp"
 #include "MESH_RENDER.hpp"
+#include "GAME_OBJECT.hpp"
 #include "TEXTURE_LOADER.hpp"
 #include "TEXT_RENDER.hpp"
 
@@ -21,7 +22,7 @@ using namespace glm;
 
 CAMERA* camera;
 POINT_LIGHT* pointLight;
-MESH_RENDER* uvSphere;
+GAME_OBJECT* uvSphere;
 MESH_RENDER* ground;
 MESH_RENDER* enemy;
 TEXT_RENDER* label;
@@ -36,6 +37,10 @@ GLuint sphereTexture, groundTexture;
 bool grounded = false;
 bool gameOver = true;
 int score = 0;
+
+btRigidBody* sphereRigidBody;
+btRigidBody* groundRigidBody;
+btRigidBody* cubeRigidBody;
 
 void InitGame();
 
@@ -57,17 +62,17 @@ void AddRigidBodMesh() {
 	btVector3 sphereInertia(0, 0, 0);
 	sphereCollisionShape->calculateLocalInertia(mass, sphereInertia);
 	btRigidBody::btRigidBodyConstructionInfo sphereRigidBodyInfo(mass, sphereMotionState, sphereCollisionShape, sphereInertia);
-	btRigidBody* sphereRigidBody = new btRigidBody(sphereRigidBodyInfo);
+	sphereRigidBody = new btRigidBody(sphereRigidBodyInfo);
 	sphereRigidBody->setRestitution(0.0f); // 1 <- max value: Rough
 	sphereRigidBody->setFriction(1.0f);
 	sphereRigidBody->setActivationState(DISABLE_DEACTIVATION); // We need to control the jump.
 	dynamicsWorld->addRigidBody(sphereRigidBody);
 
 	// ******** Sphere mesh *********
-	uvSphere = new MESH_RENDER(MESH_TYPE::UVsphere, "hero", camera, sphereRigidBody, pointLight, 0.1f, 0.5f);
-	//uvSphere->SetProgram(textureShaderProgram);
-	uvSphere->SetProgram(litTextureShaderProgram);
-	uvSphere->SetTexture(sphereTexture);
+	uvSphere = new GAME_OBJECT("hero");
+	uvSphere->SetVertex(MESH_TYPE::UVsphere);
+	//uvSphere->SetTexture(sphereTexture);
+	uvSphere->SetTextureLit(sphereTexture, pointLight, 0.1f, 0.5f);
 	//uvSphere->SetPosition(glm::vec3(0.0f, 0.0f, 0.0f)); // Without physics.
 	uvSphere->SetScale(vec3(1.0f));
 	sphereRigidBody->setUserPointer(uvSphere); // access the name of the rendered mesh
@@ -86,7 +91,7 @@ void AddRigidBodMesh() {
 		groundCollisionShape,
 		btVector3(0, 0, 0) // inertia
 	);
-	btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyInfo);
+	groundRigidBody = new btRigidBody(groundRigidBodyInfo);
 	groundRigidBody->setRestitution(0.0f); // 1 <- max value: Rough
 	groundRigidBody->setFriction(1.0f);
 	groundRigidBody->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT); // will be like a brick wall and won't move and get affected by forces from other rigid	bodies, but other bodies will be affected by it.
@@ -114,7 +119,7 @@ void AddRigidBodMesh() {
 		cubeCollisionShape,
 		btVector3(0, 0, 0) // inertia
 	);
-	btRigidBody* cubeRigidBody = new btRigidBody(cubeRigidBodyInfo);
+	cubeRigidBody = new btRigidBody(cubeRigidBodyInfo);
 	cubeRigidBody->setRestitution(0.0f); // 1 <- max value: Rough
 	cubeRigidBody->setFriction(1.0f);
 	// cubeRigidBody->setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT); // exert force on other	objects.
@@ -205,7 +210,7 @@ void UpdateKeyboard(GLFWwindow* window, int key, int scancode, int action, int m
 		else {
 			if (grounded == true) {
 				grounded = false;
-				uvSphere->rigidBody->applyImpulse(
+				sphereRigidBody->applyImpulse(
 					btVector3(0.0f, 150.0f, 0.0f), // impulse force: 100 in y.
 					btVector3(0.0f, 0.0f, 0.0f) // position from the center of mass where the impulse is applied -> can be rotation
 				);
@@ -301,7 +306,7 @@ void RenderScene(GLclampf red = 0.0, GLclampf green = 0.0, GLclampf blue = 0.0, 
 	
 	// Draw game objects
 	//pointLight->Draw();
-	uvSphere->Draw();
+	uvSphere->Draw(litTextureShaderProgram, camera, sphereRigidBody);
 	ground->Draw();
 	enemy->Draw();
 	label->Draw();
