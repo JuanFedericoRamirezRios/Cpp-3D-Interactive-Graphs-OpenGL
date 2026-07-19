@@ -84,8 +84,7 @@ private:
 
 public:
 	std::string name = "";
-
-	//btRigidBody* rigidBody;
+	btRigidBody* rigidBody;
 
 	GAME_OBJECT(std::string name,vec3 position = vec3(0.0f, 0.0f, 0.0f), vec3 scale = vec3(1.0f, 1.0f, 1.0f)) {
 		this->name = name;
@@ -106,6 +105,9 @@ public:
 	}
 	vec3 GetScale() {
 		return scale;
+	}
+	void SetRigidBody(btRigidBody* rigidBody) {
+		this->rigidBody = rigidBody;
 	}
 	/*void SetCamera(CAMERA* camera) {
 		this->camera = camera;
@@ -289,7 +291,7 @@ public:
 
 	}
 
-	void Draw(GLuint program, CAMERA* camera, btRigidBody* rigidBody) {
+	void Draw(GLuint program, CAMERA* camera/*, btRigidBody* rigidBody*/) {
 		if (renderType == empty) {
 			std::cerr << "Error: Object " << name << " do not have render." << std::endl;
 			return;

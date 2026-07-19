@@ -13,7 +13,7 @@ GLM 1.0.3
 #include "CAMERA.hpp"
 //#include "LIGHT_RENDER.hpp"
 #include "POINT_LIGHT.hpp"
-#include "MESH_RENDER.hpp"
+//#include "MESH_RENDER.hpp"
 #include "GAME_OBJECT.hpp"
 #include "TEXTURE_LOADER.hpp"
 #include "TEXT_RENDER.hpp"
@@ -23,8 +23,8 @@ using namespace glm;
 CAMERA* camera;
 POINT_LIGHT* pointLight;
 GAME_OBJECT* uvSphere;
-MESH_RENDER* ground;
-MESH_RENDER* enemy;
+GAME_OBJECT* ground;
+GAME_OBJECT* enemy;
 TEXT_RENDER* label;
 
 
@@ -70,6 +70,7 @@ void AddRigidBodMesh() {
 
 	// ******** Sphere mesh *********
 	uvSphere = new GAME_OBJECT("hero");
+	uvSphere->SetRigidBody(sphereRigidBody);
 	uvSphere->SetVertex(MESH_TYPE::UVsphere);
 	//uvSphere->SetTexture(sphereTexture);
 	uvSphere->SetTextureLit(sphereTexture, pointLight, 0.1f, 0.5f);
@@ -98,10 +99,12 @@ void AddRigidBodMesh() {
 	dynamicsWorld->addRigidBody(groundRigidBody);
 
 	// ******** Ground mesh *********
-	ground = new MESH_RENDER(MESH_TYPE::Cube, "ground", camera, groundRigidBody, pointLight, 0.1f, 0.5f);
-	//ground->SetProgram(textureShaderProgram);
-	ground->SetProgram(litTextureShaderProgram);
-	ground->SetTexture(groundTexture);
+	ground = new GAME_OBJECT("ground");
+	ground->SetRigidBody(groundRigidBody);
+	ground->SetVertex(MESH_TYPE::Cube);
+	//ground->SetTexture(groundTexture);
+	ground->SetTextureLit(groundTexture, pointLight, 0.1f, 0.5f);
+	//ground->SetPosition(glm::vec3(0.0f, 0.0f, 0.0f)); // Without physics.
 	ground->SetScale(vec3(4.0f, 0.5f, 4.0f));
 	groundRigidBody->setUserPointer(ground);
 
@@ -127,11 +130,12 @@ void AddRigidBodMesh() {
 	dynamicsWorld->addRigidBody(cubeRigidBody);
 
 	// ******** Enemy mesh *********
-	// GLuint cubeTexture = textureLoader.GetTextureID("Assets/Textures/ground.jpg");
-	enemy = new MESH_RENDER(MESH_TYPE::Cube, "enemy", camera, cubeRigidBody, pointLight, 0.1f, 0.5f);
-	//enemy->SetProgram(textureShaderProgram);
-	enemy->SetProgram(litTextureShaderProgram);
-	enemy->SetTexture(groundTexture);
+	enemy = new GAME_OBJECT("enemy");
+	enemy->SetRigidBody(cubeRigidBody);
+	enemy->SetVertex(MESH_TYPE::Cube);
+	//enemy->SetTexture(groundTexture);
+	enemy->SetTextureLit(groundTexture, pointLight, 0.1f, 0.5f);
+	//enemy->SetPosition(glm::vec3(0.0f, 0.0f, 0.0f)); // Without physics.
 	enemy->SetScale(vec3(1.0f, 1.0f, 1.0f));
 	cubeRigidBody->setUserPointer(enemy);
 
@@ -167,8 +171,8 @@ void CustomUpdate(btDynamicsWorld* dynamicsWorld, btScalar dt) { // Custom updat
 			
 			const btCollisionObject* bodyA = contactManifold->getBody0();
 			const btCollisionObject* bodyB = contactManifold->getBody1();
-			MESH_RENDER* meshA = (MESH_RENDER*)bodyA->getUserPointer();
-			MESH_RENDER* meshB = (MESH_RENDER*)bodyB->getUserPointer();
+			GAME_OBJECT* meshA = (GAME_OBJECT*)bodyA->getUserPointer();
+			GAME_OBJECT* meshB = (GAME_OBJECT*)bodyB->getUserPointer();
 			
 			if ((meshA->name == "hero" && meshB->name == "enemy") || 
 			(meshA->name == "enemy" && meshB->name == "hero")) {
@@ -210,7 +214,7 @@ void UpdateKeyboard(GLFWwindow* window, int key, int scancode, int action, int m
 		else {
 			if (grounded == true) {
 				grounded = false;
-				sphereRigidBody->applyImpulse(
+				uvSphere->rigidBody->applyImpulse(
 					btVector3(0.0f, 150.0f, 0.0f), // impulse force: 100 in y.
 					btVector3(0.0f, 0.0f, 0.0f) // position from the center of mass where the impulse is applied -> can be rotation
 				);
@@ -306,8 +310,8 @@ void RenderScene(GLclampf red = 0.0, GLclampf green = 0.0, GLclampf blue = 0.0, 
 	
 	// Draw game objects
 	//pointLight->Draw();
-	uvSphere->Draw(litTextureShaderProgram, camera, sphereRigidBody);
-	ground->Draw();
-	enemy->Draw();
+	uvSphere->Draw(litTextureShaderProgram, camera/*, sphereRigidBody*/);
+	ground->Draw(litTextureShaderProgram, camera);
+	enemy->Draw(litTextureShaderProgram, camera);
 	label->Draw();
 }
