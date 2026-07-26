@@ -44,6 +44,12 @@
     <ClInclude Include="GAME_OBJECT.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="POINT_LIGHT.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OGL_UTILITIES.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="OpenGL_pipeline.png">

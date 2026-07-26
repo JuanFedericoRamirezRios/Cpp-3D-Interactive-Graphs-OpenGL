@@ -18,6 +18,8 @@ GLM 1.0.3
 #include "TEXTURE_LOADER.hpp"
 #include "TEXT_RENDER.hpp"
 
+#include "OGL_UTILITIES.hpp"
+
 using namespace glm;
 
 CAMERA* camera;
@@ -72,8 +74,10 @@ void AddRigidBodMesh() {
 	uvSphere = new GAME_OBJECT("hero");
 	uvSphere->SetRigidBody(sphereRigidBody);
 	uvSphere->SetVertex(MESH_TYPE::UVsphere);
-	//uvSphere->SetTexture(sphereTexture);
-	uvSphere->SetTextureLit(sphereTexture, pointLight, 0.1f, 0.5f);
+	//uvSphere->SetDefaultColor(flatShaderProgram);
+	//uvSphere->SetColor(flatShaderProgram, vec4(1.0f, 0.0f, 0.0f, 1.0f));
+	uvSphere->SetTexture(textureShaderProgram, sphereTexture);
+	//uvSphere->SetTextureLit(litTextureShaderProgram, sphereTexture, pointLight, 0.1f, 0.5f);
 	//uvSphere->SetPosition(glm::vec3(0.0f, 0.0f, 0.0f)); // Without physics.
 	uvSphere->SetScale(vec3(1.0f));
 	sphereRigidBody->setUserPointer(uvSphere); // access the name of the rendered mesh
@@ -102,8 +106,10 @@ void AddRigidBodMesh() {
 	ground = new GAME_OBJECT("ground");
 	ground->SetRigidBody(groundRigidBody);
 	ground->SetVertex(MESH_TYPE::Cube);
-	//ground->SetTexture(groundTexture);
-	ground->SetTextureLit(groundTexture, pointLight, 0.1f, 0.5f);
+
+	//ground->SetColor(flatShaderProgram, vec4(1.0f, 0.0f, 1.0f, 1.0f));
+	//ground->SetTexture(textureShaderProgram, groundTexture);
+	ground->SetTextureLit(litTextureShaderProgram, groundTexture, pointLight, 0.1f, 0.5f);
 	//ground->SetPosition(glm::vec3(0.0f, 0.0f, 0.0f)); // Without physics.
 	ground->SetScale(vec3(4.0f, 0.5f, 4.0f));
 	groundRigidBody->setUserPointer(ground);
@@ -133,15 +139,16 @@ void AddRigidBodMesh() {
 	enemy = new GAME_OBJECT("enemy");
 	enemy->SetRigidBody(cubeRigidBody);
 	enemy->SetVertex(MESH_TYPE::Cube);
-	//enemy->SetTexture(groundTexture);
-	enemy->SetTextureLit(groundTexture, pointLight, 0.1f, 0.5f);
+	enemy->SetColor(flatShaderProgram, vec4(1.0f, 0.0f, 0.0f, 1.0f));
+	//enemy->SetTexture(textureShaderProgram, groundTexture);
+	//enemy->SetTextureLit(litTextureShaderProgram, groundTexture, pointLight, 0.1f, 0.5f);
 	//enemy->SetPosition(glm::vec3(0.0f, 0.0f, 0.0f)); // Without physics.
 	enemy->SetScale(vec3(1.0f, 1.0f, 1.0f));
 	cubeRigidBody->setUserPointer(enemy);
 
 
 }
-void CustomUpdate(btDynamicsWorld* dynamicsWorld, btScalar dt) { // Custom update of dynamicsWorld (additional to physics).
+void Script(btDynamicsWorld* dynamicsWorld, btScalar dt) { // Custom update of dynamicsWorld (additional to physics).
 	if (!gameOver) {
 		// Get enemy transform
 		btTransform transformEnemy(enemy->rigidBody->getWorldTransform()); // WorldMatrix*PosMatrix
@@ -223,26 +230,17 @@ void UpdateKeyboard(GLFWwindow* window, int key, int scancode, int action, int m
 	}
 }
 int main(int argc, char** argv) {
-	glfwSetErrorCallback(&GlfwError);
+	GLFWwindow* window = OGL_FEDE::InitWindow(800, 600, "Game example");
 
-	glfwInit();
-	
-	GLFWwindow* window = glfwCreateWindow(800, 600, " Hell world ", NULL, NULL);
-	
-	glfwMakeContextCurrent(window);
 	// Capture keyboard events
 	glfwSetKeyCallback(window, UpdateKeyboard);
-	
-	glewInit();
 
 	InitGame();
 
-	auto t0 = std::chrono::high_resolution_clock::
-		now();
+	auto t0 = std::chrono::high_resolution_clock::now();
 		
 	while (!glfwWindowShouldClose(window)) {
-		auto t = std::chrono::high_resolution_clock::
-			now();
+		auto t = std::chrono::high_resolution_clock::now();
 		float dt = std::chrono::duration<float,	std::chrono::seconds::period> (
 				t - t0
 			).count();
@@ -276,12 +274,10 @@ void InitGame() {
 	// ******** Set camera *********
 	camera = new CAMERA(45.0f, 800, 600, 0.1f, 100.0f, vec3(0.0f, 4.0f, 20.0f)); // 800x600: size of window
 
-	// ******** Light mesh without texture *********
+	// ******** Point Light *********
 	//pointLight = new LIGHT_RENDER(MESH_TYPE::Triangle, camera);
 	//pointLight->SetProgram(flatShaderProgram);
 	pointLight = new POINT_LIGHT(vec3(0.0f, 10.0f, 0.0f), vec4(1.0f, 1.0f, 1.0f, 1.0f));
-	//pointLight->SetPositon(vec3(0.0f, 10.0f, 0.0f));
-	//pointLight->SetColor(vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
 	// ******** Texture loader *********
 	TEXTURE_LOADER textureLoader;
@@ -293,13 +289,10 @@ void InitGame() {
 	label->SetPosition(glm::vec2(320.0f, 500.0f));
 
 	// ******** Load physics *********
-	btBroadphaseInterface* broadPhaseCollision = new btDbvtBroadphase(); // broadphase: Using bounding boxes of the objects
-	btDefaultCollisionConfiguration* defalultCollisionConf = new btDefaultCollisionConfiguration(); // Default memory.
-	btCollisionDispatcher* dispatcherCollision = new btCollisionDispatcher(defalultCollisionConf); // details of the collision detection, such as which object collided with which other object.
-	btSequentialImpulseConstraintSolver* constrains = new btSequentialImpulseConstraintSolver(); // can restrict the motion or rotation
-	dynamicsWorld = new btDiscreteDynamicsWorld(dispatcherCollision, broadPhaseCollision, constrains, defalultCollisionConf);
-	dynamicsWorld->setGravity(btVector3(0.0f, -9.8f, 0.0f));
-	dynamicsWorld->setInternalTickCallback(CustomUpdate);
+	dynamicsWorld = OGL_FEDE::PhysicsWorld(btVector3(0.0f, -9.8f, 0.0f));
+
+	// ******** Load Script *********
+	dynamicsWorld->setInternalTickCallback(Script);
 	
 	AddRigidBodMesh();
 }
@@ -310,8 +303,8 @@ void RenderScene(GLclampf red = 0.0, GLclampf green = 0.0, GLclampf blue = 0.0, 
 	
 	// Draw game objects
 	//pointLight->Draw();
-	uvSphere->Draw(litTextureShaderProgram, camera/*, sphereRigidBody*/);
-	ground->Draw(litTextureShaderProgram, camera);
-	enemy->Draw(litTextureShaderProgram, camera);
+	uvSphere->Draw(camera);
+	ground->Draw(camera);
+	enemy->Draw(camera);
 	label->Draw();
 }

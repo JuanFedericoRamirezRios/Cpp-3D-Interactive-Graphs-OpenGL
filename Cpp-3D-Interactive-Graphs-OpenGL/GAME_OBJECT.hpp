@@ -26,7 +26,6 @@ enum RENDER_TYPE {
 	onlyColor = 1,
 	onlyTexture = 2,
 	textureLit = 3,
-	text = 4
 };
 
 class GAME_OBJECT {
@@ -39,17 +38,15 @@ private:
 
 	//mat4 model; // model = World matrix
 	vec3 pos, scale;
-	//vec4 color;
-	float ambientStrength, specularStrength;
-	//bool withLight;
 	
 	RENDER_TYPE renderType = empty;
-	//bool withRender = false;
 
-	//CAMERA* camera;
 	POINT_LIGHT* light;
+	float ambientStrength, specularStrength;
 	
-	GLuint vbo, ebo, vao, texture/*, program*/;
+	GLuint vbo, ebo, vao;
+	GLuint texture;
+	GLuint program;
 	/*
 	VBO: Vertex Buffer Object: Pos, color, normal, textureCoord. per vertex. -> GPU
 	EBO: Element Buffer Object: Store the index of each vertex
@@ -81,7 +78,7 @@ private:
 			GL_STATIC_DRAW // Usage of the data: Modify the data once and use it many times. 
 		);
 	}
-
+	
 public:
 	std::string name = "";
 	btRigidBody* rigidBody;
@@ -109,12 +106,9 @@ public:
 	void SetRigidBody(btRigidBody* rigidBody) {
 		this->rigidBody = rigidBody;
 	}
-	/*void SetCamera(CAMERA* camera) {
-		this->camera = camera;
-	}*/
-	/*void SetProgram(GLuint program) {
+	void SetProgram(GLuint program) {
 		this->program = program;
-	}*/
+	}
 	void SetVertex(MESH_TYPE meshType) {
 		// ******* Load Vertex data **********
 		switch (meshType) {
@@ -136,7 +130,7 @@ public:
 		MESH_LOADER::LoadCubeVertices(vertices, indices);
 		// ******* Load Vertex using a json file **********
 	}
-	void SetDefaultColor() { // Color of VERTEX.
+	void SetDefaultColor(GLuint program) { // Color of VERTEX.
 		if (renderType != empty) {
 			std::cerr << "Error: Object " << name << " can not overwrite the render." << std::endl;
 			return;
@@ -144,7 +138,7 @@ public:
 		else {
 			renderType = onlyColor;
 		}
-
+		this->program = program;
 		SetBuffersObject();
 
 		// ******* Set Attributes of Vertex **********
@@ -172,24 +166,23 @@ public:
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 	}
-	void SetColor(vec4 color) {
+	void SetColor(GLuint program, vec4 color) {
 		if (renderType != empty) {
 			std::cerr << "Error: Object " << name << " can not overwrite the render." << std::endl;
 			return;
 		}
 				
-		
-		//this->color = color;
-		for (VERTEX vertex : vertices) {
+		for (VERTEX &vertex : vertices) {
 			vertex.color = color;
 		}
-		SetDefaultColor();
+
+		SetDefaultColor(program);
 		
 	}
 	vec4 GetColor() {
 		return vertices[0].color;
 	}
-	void SetTexture(GLuint texture) {
+	void SetTexture(GLuint program, GLuint texture) {
 		if (renderType != empty) {
 			std::cerr << "Error: Object " << name << " can not overwrite the render." << std::endl;
 			return;
@@ -197,7 +190,7 @@ public:
 		else {
 			renderType = onlyTexture;
 		}
-
+		this->program = program;
 		this->texture = texture;
 
 		SetBuffersObject();
@@ -228,7 +221,7 @@ public:
 		glBindVertexArray(0);
 
 	}
-	void SetTextureLit(GLuint texture, POINT_LIGHT* light, float specularStrength, float ambientStrength) {
+	void SetTextureLit(GLuint program, GLuint texture, POINT_LIGHT* light, float specularStrength, float ambientStrength) {
 		if (renderType != empty) {
 			std::cerr << "Error: Object " << name << " can not overwrite the render." << std::endl;
 			return;
@@ -236,7 +229,7 @@ public:
 		else {
 			renderType = textureLit;
 		}
-
+		this->program = program;
 		this->texture = texture;
 		this->light = light;
 		this->ambientStrength = ambientStrength;
@@ -278,20 +271,8 @@ public:
 		glBindVertexArray(0);
 
 	}
-	void SetText() {
-		if (renderType != empty) {
-			std::cerr << "Error: Object " << name << " can not overwrite the render." << std::endl;
-			return;
-		}
-		else {
-			renderType = text;
-		}
 
-
-
-	}
-
-	void Draw(GLuint program, CAMERA* camera/*, btRigidBody* rigidBody*/) {
+	void Draw(CAMERA* camera) {
 		if (renderType == empty) {
 			std::cerr << "Error: Object " << name << " do not have render." << std::endl;
 			return;
@@ -301,18 +282,7 @@ public:
 		glUseProgram(program);
 
 		if (renderType == onlyColor) {
-			// ******* Set the Model matrix **********
-			mat4 model = mat4(1.0f); // model = World matrix = Identity matrix
-			model = translate(mat4(1.0), pos); // translate the object to the required position
-			// Send to the shader
-			GLint modelLoc = glGetUniformLocation(program, "model"); // "model" in Assets/Shaders/FLAT_MODEL.vs
-			glUniformMatrix4fv(
-				modelLoc,
-				1, // passing one matrix
-				GL_FALSE, // No need to be transposed
-				value_ptr(model) // Pointer to the data
-			);
-
+			
 			// ******* Set the View matrix **********
 			mat4 view = camera->GetViewMatrix();
 			// Send to the shader
@@ -324,6 +294,50 @@ public:
 			// Send to the shader
 			GLint pLoc = glGetUniformLocation(program, "projection"); // "projection" in Assets/Shaders/FLAT_MODEL.vs
 			glUniformMatrix4fv(pLoc, 1, GL_FALSE, glm::value_ptr(proj));
+
+
+			// ******* Set the Model matrix **********
+			mat4 model = mat4(1.0f); // model = World matrix = Identity matrix
+			//model = translate(mat4(1.0), pos); // translate the object to the required position}
+			
+			mat4 scale = glm::scale(mat4(1.0f), this->scale);
+			// Without physics:
+			//mat4 translation = translate(mat4(1.0f), pos);
+			//model = translation * scale;
+			// With physics:
+			btTransform transformation;
+			rigidBody->getMotionState()->getWorldTransform(transformation); // get the transformation from the rigidBody
+			btQuaternion rotationQuat = transformation.getRotation();
+			btVector3 translateVec = transformation.getOrigin();
+			mat4 rotation = glm::rotate(
+				mat4(1.0f),
+				rotationQuat.getAngle(),
+				vec3(
+					rotationQuat.getAxis().getX(),
+					rotationQuat.getAxis().getY(),
+					rotationQuat.getAxis().getZ()
+				)
+			);
+			mat4 translation = glm::translate(
+				mat4(1.0f),
+				vec3(
+					translateVec.getX(),
+					translateVec.getY(),
+					translateVec.getZ()
+				)
+			);
+			model = translation * rotation * scale;
+
+			// Send to the shader
+			GLint modelLoc = glGetUniformLocation(program, "model"); // "model" in Assets/Shaders/FLAT_MODEL.vs
+			glUniformMatrix4fv(
+				modelLoc,
+				1, // passing one matrix
+				GL_FALSE, // No need to be transposed
+				value_ptr(model) // Pointer to the data
+			);
+
+
 		}
 		else if ((renderType == onlyTexture) || (renderType == textureLit)) {
 			// ******* Set Projection and View matrix **********
@@ -396,13 +410,6 @@ public:
 				glUniform1f(ambientStrengthLoc, ambientStrength);
 			}
 		}
-		else if (renderType == text) {
-
-		}
-		
-
-		
-
 		// ******* Draw the object **********
 		glBindVertexArray(vao);
 		glDrawElements(

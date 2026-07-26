@@ -135,6 +135,7 @@
   <ItemGroup>
     <ClInclude Include="CAMERA.hpp" />
     <ClInclude Include="GAME_OBJECT.hpp" />
+    <ClInclude Include="OGL_UTILITIES.hpp" />
     <ClInclude Include="POINT_LIGHT.hpp" />
     <ClInclude Include="LIGHT_RENDER.hpp" />
     <ClInclude Include="MESH_LOADER.hpp" />
