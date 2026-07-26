@@ -40,6 +40,7 @@ private:
 	vec3 pos, scale;
 	
 	RENDER_TYPE renderType = empty;
+	bool withRigidBody = false;
 
 	POINT_LIGHT* light;
 	float ambientStrength, specularStrength;
@@ -105,6 +106,7 @@ public:
 	}
 	void SetRigidBody(btRigidBody* rigidBody) {
 		this->rigidBody = rigidBody;
+
 	}
 	void SetProgram(GLuint program) {
 		this->program = program;

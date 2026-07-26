@@ -47,5 +47,78 @@ public:
 		dynamicsWorld->setGravity(gravity);
 		return dynamicsWorld;
 	}
+	static btRigidBody* SetRB(
+		auto* collisionShape,
+		btVector3 position,
+		btScalar factorGravity,
+		btQuaternion rotation,
+		btVector3 inertia,
+		btScalar restitution = 0.0f,
+		btScalar friction = 1.0f
+	) {
+		collisionShape->calculateLocalInertia(factorGravity, inertia);
+		btDefaultMotionState* motionState = new btDefaultMotionState(
+			btTransform(
+				rotation,
+				position
+			)
+		);
+		btRigidBody::btRigidBodyConstructionInfo bodyInfo(
+			factorGravity,
+			motionState,
+			collisionShape,
+			inertia
+		);
+		btRigidBody* rigidBody = new btRigidBody(bodyInfo);
+		rigidBody->setRestitution(restitution); // 1 <- max value: Rough
+		rigidBody->setFriction(friction);
+		return rigidBody;
+	}
+	
+	static btRigidBody* SphereRB(
+		btScalar radius = 1.0f, 
+		btVector3 position = btVector3(0.0f, 0.0f, 0.0f), 
+		btScalar factorGravity = 1.0f, 
+		btQuaternion rotation = btQuaternion(0, 0, 0, 1), // rotation: (0, 0, 0, 1) -> No rotation. See matrix rotation.
+		btVector3 inertia = btVector3(0, 0, 0),
+		btScalar restitution = 0.0f,
+		btScalar friction = 1.0f
+	) {
+		btCollisionShape* sphereCollisionShape = new btSphereShape(radius); // narrowphase: Collision at sphere shape level. radius = 1.
+
+		btRigidBody* rigidBody = SetRB(
+			sphereCollisionShape,
+			position,
+			factorGravity,
+			rotation,
+			inertia,
+			restitution,
+			friction
+		);
+		return rigidBody;
+	}
+	static btRigidBody* BoxRB(
+		btVector3 size = btVector3(1.0f, 1.0f, 1.0f),
+		btVector3 position = btVector3(0.0f, 0.0f, 0.0f),
+		btScalar factorGravity = 1.0f,
+		btQuaternion rotation = btQuaternion(0, 0, 0, 1), // rotation: (0, 0, 0, 1) -> No rotation. See matrix rotation.
+		btVector3 inertia = btVector3(0, 0, 0),
+		btScalar restitution = 0.0f,
+		btScalar friction = 1.0f
+	) {
+		btCollisionShape* boxCollisionShape = new btBoxShape(size); // narrowphase: Collision at box shape level. length, height, depth
+
+		btRigidBody* rigidBody = SetRB(
+			boxCollisionShape,
+			position,
+			factorGravity,
+			rotation,
+			inertia,
+			restitution,
+			friction
+		);
+
+		return rigidBody;
+	}
 
 };

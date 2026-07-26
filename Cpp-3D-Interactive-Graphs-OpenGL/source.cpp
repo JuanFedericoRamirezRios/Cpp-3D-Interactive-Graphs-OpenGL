@@ -53,20 +53,11 @@ static void GlfwError(int id, const char* description) {
 }
 void AddRigidBodMesh() {
 	// ******** Sphere rigid body *********
-	btCollisionShape* sphereCollisionShape = new btSphereShape(1.0f); // narrowphase: Collision at sphere shape level. radius = 1.
-	btDefaultMotionState* sphereMotionState = new btDefaultMotionState(
-		btTransform(
-			btQuaternion(0, 0, 0, 1), // rotation: (0, 0, 0, 1) -> No rotation. See matrix rotation.
-			btVector3(0, 0.5f, 0) // position: (0, .0.5f, 0): 0.5 along y axis
-		)
+	sphereRigidBody = OGL_FEDE::SphereRB(
+		1.0f, 
+		btVector3(0, 0.5f, 0), 
+		13.0f
 	);
-	btScalar mass = 13.0;
-	btVector3 sphereInertia(0, 0, 0);
-	sphereCollisionShape->calculateLocalInertia(mass, sphereInertia);
-	btRigidBody::btRigidBodyConstructionInfo sphereRigidBodyInfo(mass, sphereMotionState, sphereCollisionShape, sphereInertia);
-	sphereRigidBody = new btRigidBody(sphereRigidBodyInfo);
-	sphereRigidBody->setRestitution(0.0f); // 1 <- max value: Rough
-	sphereRigidBody->setFriction(1.0f);
 	sphereRigidBody->setActivationState(DISABLE_DEACTIVATION); // We need to control the jump.
 	dynamicsWorld->addRigidBody(sphereRigidBody);
 
@@ -83,22 +74,11 @@ void AddRigidBodMesh() {
 	sphereRigidBody->setUserPointer(uvSphere); // access the name of the rendered mesh
 
 	// ******** Ground rigid body *********
-	btCollisionShape* groundCollisionShape = new  btBoxShape(btVector3(4.0f, 0.5f, 4.0f)); // narrowphase: Collision at box shape level. length, height, depth = 4x5x4
-	btDefaultMotionState* groundMotionState = new btDefaultMotionState(
-		btTransform(
-			btQuaternion(0, 0, 0, 1), // rotation: (0, 0, 0, 1) -> No rotation. See matrix rotation.
-			btVector3(0, -1.0f, 0) // position: (0, -1.0f, 0): -1 along y axis
-		)
+	groundRigidBody = OGL_FEDE::BoxRB(
+		btVector3(4.0f, 0.5f, 4.0f), 
+		btVector3(0, -1.0f, 0), 
+		0.0f
 	);
-	btRigidBody::btRigidBodyConstructionInfo groundRigidBodyInfo(
-		0.0f, // mass
-		groundMotionState, // new btDefaultMotionState(),
-		groundCollisionShape,
-		btVector3(0, 0, 0) // inertia
-	);
-	groundRigidBody = new btRigidBody(groundRigidBodyInfo);
-	groundRigidBody->setRestitution(0.0f); // 1 <- max value: Rough
-	groundRigidBody->setFriction(1.0f);
 	groundRigidBody->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT); // will be like a brick wall and won't move and get affected by forces from other rigid	bodies, but other bodies will be affected by it.
 	dynamicsWorld->addRigidBody(groundRigidBody);
 
@@ -115,22 +95,11 @@ void AddRigidBodMesh() {
 	groundRigidBody->setUserPointer(ground);
 
 	// ******** Enemy rigid body *********
-	btCollisionShape* cubeCollisionShape = new  btBoxShape(btVector3(1.0f, 1.0f, 1.0f)); // narrowphase: Collision at box shape level.
-	btDefaultMotionState* cubeMotionState = new btDefaultMotionState(
-		btTransform(
-			btQuaternion(0, 0, 0, 1), // rotation: (0, 0, 0, 1) -> No rotation. See matrix rotation.
-			btVector3(18.0f, 1.0f, 0) // position: 18 in x and 1 in y
-		)
+	cubeRigidBody = OGL_FEDE::BoxRB(
+		btVector3(1.0f, 1.0f, 1.0f),
+		btVector3(18.0f, 1.0f, 0),
+		0.0f
 	);
-	btRigidBody::btRigidBodyConstructionInfo cubeRigidBodyInfo(
-		0.0f, // mass
-		cubeMotionState, // new btDefaultMotionState(),
-		cubeCollisionShape,
-		btVector3(0, 0, 0) // inertia
-	);
-	cubeRigidBody = new btRigidBody(cubeRigidBodyInfo);
-	cubeRigidBody->setRestitution(0.0f); // 1 <- max value: Rough
-	cubeRigidBody->setFriction(1.0f);
 	// cubeRigidBody->setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT); // exert force on other	objects.
 	cubeRigidBody->setCollisionFlags(btCollisionObject::CF_NO_CONTACT_RESPONSE); // CF_NO_CONTACT_RESPONSE: No check if there was an overlap between the enemy rigid body and another body. CF_KINEMATIC_OBJECT: The objects respond to collision.
 	dynamicsWorld->addRigidBody(cubeRigidBody);
