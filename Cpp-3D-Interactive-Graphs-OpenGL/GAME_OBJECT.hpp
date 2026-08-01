@@ -33,10 +33,8 @@ private:
 	std::vector<VERTEX> vertices;
 	std::vector<GLuint> indices;
 
-	//RENDER render = empty;
-	
-
 	//mat4 model; // model = World matrix
+	MESH_TYPE meshType;
 	vec3 pos, scale;
 	
 	RENDER_TYPE renderType = empty;
@@ -112,6 +110,7 @@ public:
 		this->program = program;
 	}
 	void SetVertex(MESH_TYPE meshType) {
+		this->meshType = meshType;
 		// ******* Load Vertex data **********
 		switch (meshType) {
 		case Triangle:

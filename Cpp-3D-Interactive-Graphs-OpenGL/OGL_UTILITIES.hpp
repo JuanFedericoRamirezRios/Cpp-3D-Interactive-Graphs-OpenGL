@@ -48,13 +48,13 @@ public:
 		return dynamicsWorld;
 	}
 	static btRigidBody* SetRB(
-		auto* collisionShape,
+		btCollisionShape* collisionShape,
 		btVector3 position,
 		btScalar factorGravity,
 		btQuaternion rotation,
 		btVector3 inertia,
-		btScalar restitution = 0.0f,
-		btScalar friction = 1.0f
+		btScalar restitution,
+		btScalar friction
 	) {
 		collisionShape->calculateLocalInertia(factorGravity, inertia);
 		btDefaultMotionState* motionState = new btDefaultMotionState(
