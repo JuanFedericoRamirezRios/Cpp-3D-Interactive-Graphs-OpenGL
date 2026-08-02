@@ -11,9 +11,8 @@ GLM 1.0.3
 
 #include "SHADER_LOADER.hpp"
 #include "CAMERA.hpp"
-//#include "LIGHT_RENDER.hpp"
 #include "POINT_LIGHT.hpp"
-//#include "MESH_RENDER.hpp"
+
 #include "GAME_OBJECT.hpp"
 #include "TEXTURE_LOADER.hpp"
 #include "TEXT_RENDER.hpp"
@@ -29,6 +28,9 @@ GAME_OBJECT* ground;
 GAME_OBJECT* enemy;
 TEXT_RENDER* label;
 
+GAME_OBJECT* blueBox;
+GAME_OBJECT* textureSph;
+GAME_OBJECT* textureLitSph;
 
 btDiscreteDynamicsWorld* dynamicsWorld; // Track of all the physics.
 
@@ -40,10 +42,6 @@ bool grounded = false;
 bool gameOver = true;
 int score = 0;
 
-btRigidBody* sphereRigidBody;
-btRigidBody* groundRigidBody;
-btRigidBody* cubeRigidBody;
-
 void InitGame();
 
 void RenderScene(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
@@ -51,70 +49,53 @@ void RenderScene(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
 static void GlfwError(int id, const char* description) {
 	std::cerr << "GLFW Error: " << description << std::endl;
 }
-void AddRigidBodMesh() {
-	// ******** Sphere rigid body *********
-	sphereRigidBody = OGL_FEDE::SphereRB(
-		1.0f, 
-		btVector3(0, 0.5f, 0), 
-		13.0f
-	);
-	sphereRigidBody->setActivationState(DISABLE_DEACTIVATION); // We need to control the jump.
-	dynamicsWorld->addRigidBody(sphereRigidBody);
+void AddGameObjects() {
+	// ******** Sphere *********
+	uvSphere = new GAME_OBJECT("hero", vec3(-2.0f, 0.5f, 0), vec3(1.0f));
 
-	// ******** Sphere mesh *********
-	uvSphere = new GAME_OBJECT("hero");
-	uvSphere->SetRigidBody(sphereRigidBody);
 	uvSphere->SetVertex(MESH_TYPE::UVsphere);
 	//uvSphere->SetDefaultColor(flatShaderProgram);
 	//uvSphere->SetColor(flatShaderProgram, vec4(1.0f, 0.0f, 0.0f, 1.0f));
 	uvSphere->SetTexture(textureShaderProgram, sphereTexture);
 	//uvSphere->SetTextureLit(litTextureShaderProgram, sphereTexture, pointLight, 0.1f, 0.5f);
-	//uvSphere->SetPosition(glm::vec3(0.0f, 0.0f, 0.0f)); // Without physics.
-	uvSphere->SetScale(vec3(1.0f));
-	sphereRigidBody->setUserPointer(uvSphere); // access the name of the rendered mesh
+	
+	uvSphere->SetSphereRB(1.0f, 13.0f);
+	uvSphere->rigidBody->setActivationState(DISABLE_DEACTIVATION); // We need to control the jump.
+	dynamicsWorld->addRigidBody(uvSphere->rigidBody);
 
-	// ******** Ground rigid body *********
-	groundRigidBody = OGL_FEDE::BoxRB(
-		btVector3(4.0f, 0.5f, 4.0f), 
-		btVector3(0, -1.0f, 0), 
-		0.0f
-	);
-	groundRigidBody->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT); // will be like a brick wall and won't move and get affected by forces from other rigid	bodies, but other bodies will be affected by it.
-	dynamicsWorld->addRigidBody(groundRigidBody);
+	// ******** Ground *********
+	ground = new GAME_OBJECT("ground", vec3(0, -1.0f, 0), vec3(4.0f, 0.5f, 4.0f));
 
-	// ******** Ground mesh *********
-	ground = new GAME_OBJECT("ground");
-	ground->SetRigidBody(groundRigidBody);
 	ground->SetVertex(MESH_TYPE::Cube);
-
-	//ground->SetColor(flatShaderProgram, vec4(1.0f, 0.0f, 1.0f, 1.0f));
-	//ground->SetTexture(textureShaderProgram, groundTexture);
 	ground->SetTextureLit(litTextureShaderProgram, groundTexture, pointLight, 0.1f, 0.5f);
-	//ground->SetPosition(glm::vec3(0.0f, 0.0f, 0.0f)); // Without physics.
-	ground->SetScale(vec3(4.0f, 0.5f, 4.0f));
-	groundRigidBody->setUserPointer(ground);
 
-	// ******** Enemy rigid body *********
-	cubeRigidBody = OGL_FEDE::BoxRB(
-		btVector3(1.0f, 1.0f, 1.0f),
-		btVector3(18.0f, 1.0f, 0),
-		0.0f
-	);
-	// cubeRigidBody->setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT); // exert force on other	objects.
-	cubeRigidBody->setCollisionFlags(btCollisionObject::CF_NO_CONTACT_RESPONSE); // CF_NO_CONTACT_RESPONSE: No check if there was an overlap between the enemy rigid body and another body. CF_KINEMATIC_OBJECT: The objects respond to collision.
-	dynamicsWorld->addRigidBody(cubeRigidBody);
+	ground->SetBoxRB(0.0f);
+	ground->rigidBody->setCollisionFlags(btCollisionObject::CF_STATIC_OBJECT); // will be like a brick wall and won't move and get affected by forces from other rigid	bodies, but other bodies will be affected by it.
+	dynamicsWorld->addRigidBody(ground->rigidBody);
 
-	// ******** Enemy mesh *********
-	enemy = new GAME_OBJECT("enemy");
-	enemy->SetRigidBody(cubeRigidBody);
+	// ******** Enemy *********
+	enemy = new GAME_OBJECT("enemy", vec3(18.0f, 1.0f, 0), vec3(1.0f, 1.0f, 1.0f));
+
 	enemy->SetVertex(MESH_TYPE::Cube);
 	enemy->SetColor(flatShaderProgram, vec4(1.0f, 0.0f, 0.0f, 1.0f));
-	//enemy->SetTexture(textureShaderProgram, groundTexture);
-	//enemy->SetTextureLit(litTextureShaderProgram, groundTexture, pointLight, 0.1f, 0.5f);
-	//enemy->SetPosition(glm::vec3(0.0f, 0.0f, 0.0f)); // Without physics.
-	enemy->SetScale(vec3(1.0f, 1.0f, 1.0f));
-	cubeRigidBody->setUserPointer(enemy);
 
+	enemy->SetBoxRB(0.0f);
+	//enemy->rigidBody->setCollisionFlags(btCollisionObject::CF_KINEMATIC_OBJECT); // exert force on other	objects.
+	enemy->rigidBody->setCollisionFlags(btCollisionObject::CF_NO_CONTACT_RESPONSE); // CF_NO_CONTACT_RESPONSE: No check if there was an overlap between the enemy rigid body and another body. CF_KINEMATIC_OBJECT: The objects respond to collision.
+	dynamicsWorld->addRigidBody(enemy->rigidBody);
+
+	// ********* Decoration objetcs (no rigidBody -> no physics) ******
+	blueBox = new GAME_OBJECT("", vec3(-2.0f, 7.0f, 0.0f), vec3(1.0f));
+	blueBox->SetVertex(MESH_TYPE::Cube);
+	blueBox->SetColor(flatShaderProgram, vec4(0.0f, 0.0f, 1.0f, 1.0f));
+
+	textureSph = new GAME_OBJECT("", vec3(2.0f, 7.0f, -5.0f), vec3(2.0f));
+	textureSph->SetVertex(MESH_TYPE::UVsphere);
+	textureSph->SetTexture(litTextureShaderProgram, groundTexture);
+
+	textureLitSph = new GAME_OBJECT("", vec3(9.0f, 1.0f, 0), vec3(2.0f));
+	textureLitSph->SetVertex(MESH_TYPE::UVsphere);
+	textureLitSph->SetTextureLit(litTextureShaderProgram, groundTexture, pointLight, 0.1f, 0.5f);
 
 }
 void Script(btDynamicsWorld* dynamicsWorld, btScalar dt) { // Custom update of dynamicsWorld (additional to physics).
@@ -263,7 +244,7 @@ void InitGame() {
 	// ******** Load Script *********
 	dynamicsWorld->setInternalTickCallback(Script);
 	
-	AddRigidBodMesh();
+	AddGameObjects();
 }
 void RenderScene(GLclampf red = 0.0, GLclampf green = 0.0, GLclampf blue = 0.0, GLclampf alpha = 1.0) { // Clampled 32 bits float, clamped to the range [0, 1]
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the color buffer and the depth buffer (if a pixel is behind another pixel, then that pixel will not be stored and show).
@@ -276,4 +257,8 @@ void RenderScene(GLclampf red = 0.0, GLclampf green = 0.0, GLclampf blue = 0.0, 
 	ground->Draw(camera);
 	enemy->Draw(camera);
 	label->Draw();
+
+	blueBox->Draw(camera);
+	textureSph->Draw(camera);
+	textureLitSph->Draw(camera);
 }

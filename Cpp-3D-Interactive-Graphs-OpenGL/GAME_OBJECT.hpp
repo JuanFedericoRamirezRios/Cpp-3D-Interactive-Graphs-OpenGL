@@ -15,6 +15,7 @@ GLM 1.0.3
 #include "CAMERA.hpp" // Get location, view and projection matrices.
 #include "POINT_LIGHT.hpp"
 #include "MESH_LOADER.hpp"
+#include "OGL_UTILITIES.hpp"
 #include <iostream>
 
 #include <btBulletDynamicsCommon.h>
@@ -34,7 +35,6 @@ private:
 	std::vector<GLuint> indices;
 
 	//mat4 model; // model = World matrix
-	MESH_TYPE meshType;
 	vec3 pos, scale;
 	
 	RENDER_TYPE renderType = empty;
@@ -102,15 +102,70 @@ public:
 	vec3 GetScale() {
 		return scale;
 	}
-	void SetRigidBody(btRigidBody* rigidBody) {
-		this->rigidBody = rigidBody;
+	void SetRB(btRigidBody* rigidBody) {
+		if (withRigidBody) {
+			std::cerr << "Error: Object " << name << " can not overwrite the Rigid Body." << std::endl;
+			return;
+		}
+		withRigidBody = true;
 
+		this->rigidBody = rigidBody;
+		this->rigidBody->setUserPointer(this); // access the name of the rendered mesh
 	}
+	void SetSphereRB(
+		btScalar radius = 1.0f,
+		btScalar factorGravity = 1.0f,
+		btQuaternion rotation = btQuaternion(0, 0, 0, 1), // rotation: (0, 0, 0, 1) -> No rotation. See matrix rotation.
+		btVector3 inertia = btVector3(0, 0, 0),
+		btScalar restitution = 0.0f,
+		btScalar friction = 1.0f
+	) {
+		if (withRigidBody) {
+			std::cerr << "Error: Object " << name << " can not overwrite the Rigid Body." << std::endl;
+			return;
+		}
+		withRigidBody = true;
+
+		rigidBody = OGL_FEDE::SphereRB(
+			radius,
+			btVector3(pos.x, pos.y, pos.z),
+			factorGravity,
+			rotation, 
+			inertia,
+			restitution,
+			friction
+		);
+		rigidBody->setUserPointer(this); // access the name of the rendered mesh
+	}
+	void SetBoxRB(
+		btScalar factorGravity = 1.0f,
+		btQuaternion rotation = btQuaternion(0, 0, 0, 1), // rotation: (0, 0, 0, 1) -> No rotation. See matrix rotation.
+		btVector3 inertia = btVector3(0, 0, 0),
+		btScalar restitution = 0.0f,
+		btScalar friction = 1.0f
+	) {
+		if (withRigidBody) {
+			std::cerr << "Error: Object " << name << " can not overwrite the Rigid Body." << std::endl;
+			return;
+		}
+		withRigidBody = true;
+
+		rigidBody = OGL_FEDE::BoxRB(
+			btVector3(scale.x, scale.y, scale.z),
+			btVector3(pos.x, pos.y, pos.z),
+			factorGravity,
+			rotation,
+			inertia,
+			restitution,
+			friction
+		);
+		rigidBody->setUserPointer(this); // access the name of the rendered mesh
+	}
+
 	void SetProgram(GLuint program) {
 		this->program = program;
 	}
 	void SetVertex(MESH_TYPE meshType) {
-		this->meshType = meshType;
 		// ******* Load Vertex data **********
 		switch (meshType) {
 		case Triangle:
@@ -282,6 +337,48 @@ public:
 		// ******* Set the shader **********
 		glUseProgram(program);
 
+		// ******* Set the Model matrix **********
+		mat4 model; // model = World matrix = Identity matrix
+		//model = translate(mat4(1.0), pos); // translate the object to the required position}
+		mat4 scale = glm::scale(mat4(1.0f), this->scale);
+		if (!withRigidBody) { // Without physics:
+			//std::cout << "color without RB" << std::endl;
+			mat4 translation = translate(mat4(1.0f), pos);
+			model = translation * scale;
+		}
+		else {
+			btTransform transformation;
+			rigidBody->getMotionState()->getWorldTransform(transformation); // get the transformation from the rigidBody
+			btQuaternion rotationQuat = transformation.getRotation();
+			btVector3 translateVec = transformation.getOrigin();
+			mat4 rotation = glm::rotate(
+				mat4(1.0f),
+				rotationQuat.getAngle(),
+				vec3(
+					rotationQuat.getAxis().getX(),
+					rotationQuat.getAxis().getY(),
+					rotationQuat.getAxis().getZ()
+				)
+			);
+			mat4 translation = glm::translate(
+				mat4(1.0f),
+				vec3(
+					translateVec.getX(),
+					translateVec.getY(),
+					translateVec.getZ()
+				)
+			);
+			model = translation * rotation * scale;
+		}
+		// Send to the shader
+		GLint modelLoc = glGetUniformLocation(program, "model"); // "model" in Assets/Shaders/FLAT_MODEL.vs, Assets/Shaders/TEXTURE_MODEL.vs or LIT_TEXTURE_MODEL.vs
+		glUniformMatrix4fv(
+			modelLoc,
+			1, // passing one matrix
+			GL_FALSE, // No need to be transposed
+			value_ptr(model) // Pointer to the data
+		);
+
 		if (renderType == onlyColor) {
 			
 			// ******* Set the View matrix **********
@@ -296,49 +393,7 @@ public:
 			GLint pLoc = glGetUniformLocation(program, "projection"); // "projection" in Assets/Shaders/FLAT_MODEL.vs
 			glUniformMatrix4fv(pLoc, 1, GL_FALSE, glm::value_ptr(proj));
 
-
-			// ******* Set the Model matrix **********
-			mat4 model = mat4(1.0f); // model = World matrix = Identity matrix
-			//model = translate(mat4(1.0), pos); // translate the object to the required position}
 			
-			mat4 scale = glm::scale(mat4(1.0f), this->scale);
-			// Without physics:
-			//mat4 translation = translate(mat4(1.0f), pos);
-			//model = translation * scale;
-			// With physics:
-			btTransform transformation;
-			rigidBody->getMotionState()->getWorldTransform(transformation); // get the transformation from the rigidBody
-			btQuaternion rotationQuat = transformation.getRotation();
-			btVector3 translateVec = transformation.getOrigin();
-			mat4 rotation = glm::rotate(
-				mat4(1.0f),
-				rotationQuat.getAngle(),
-				vec3(
-					rotationQuat.getAxis().getX(),
-					rotationQuat.getAxis().getY(),
-					rotationQuat.getAxis().getZ()
-				)
-			);
-			mat4 translation = glm::translate(
-				mat4(1.0f),
-				vec3(
-					translateVec.getX(),
-					translateVec.getY(),
-					translateVec.getZ()
-				)
-			);
-			model = translation * rotation * scale;
-
-			// Send to the shader
-			GLint modelLoc = glGetUniformLocation(program, "model"); // "model" in Assets/Shaders/FLAT_MODEL.vs
-			glUniformMatrix4fv(
-				modelLoc,
-				1, // passing one matrix
-				GL_FALSE, // No need to be transposed
-				value_ptr(model) // Pointer to the data
-			);
-
-
 		}
 		else if ((renderType == onlyTexture) || (renderType == textureLit)) {
 			// ******* Set Projection and View matrix **********
@@ -350,44 +405,6 @@ public:
 				1, // passing one matrix
 				GL_FALSE, // No need to be transposed
 				value_ptr(projectionView) // Pointer to the data
-			);
-
-			// ******* Set Model (world matrix) **********
-			mat4 model = mat4(1.0f);
-			mat4 scale = glm::scale(mat4(1.0f), this->scale);
-			// Without physics:
-			//mat4 translation = translate(mat4(1.0f), position);
-			//model = translation * scale;
-			// With physics:
-			btTransform transformation;
-			rigidBody->getMotionState()->getWorldTransform(transformation); // get the transformation from the rigidBody
-			btQuaternion rotationQuat = transformation.getRotation();
-			btVector3 translateVec = transformation.getOrigin();
-			mat4 rotation = glm::rotate(
-				mat4(1.0f),
-				rotationQuat.getAngle(),
-				vec3(
-					rotationQuat.getAxis().getX(),
-					rotationQuat.getAxis().getY(),
-					rotationQuat.getAxis().getZ()
-				)
-			);
-			mat4 translation = glm::translate(
-				mat4(1.0f),
-				vec3(
-					translateVec.getX(),
-					translateVec.getY(),
-					translateVec.getZ()
-				)
-			);
-			model = translation * rotation * scale;
-			// Send to the shader
-			GLint modelLoc = glGetUniformLocation(program, "model"); // "model" in Assets/Shaders/TEXTURE_MODEL.vs or LIT_TEXTURE_MODEL.vs
-			glUniformMatrix4fv(
-				modelLoc,
-				1, // passing one matrix
-				GL_FALSE, // No need to be transposed
-				value_ptr(model) // Pointer to the data
 			);
 
 			// ******* Bind the texture **********

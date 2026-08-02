@@ -1,3 +1,5 @@
+#pragma once
+
 /*
 Standard C++ 20
 GLEW 2.3.1
@@ -84,7 +86,7 @@ public:
 		btScalar restitution = 0.0f,
 		btScalar friction = 1.0f
 	) {
-		btCollisionShape* sphereCollisionShape = new btSphereShape(radius); // narrowphase: Collision at sphere shape level. radius = 1.
+		btCollisionShape* sphereCollisionShape = new btSphereShape(radius); // narrowphase: Collision at sphere shape level.
 
 		btRigidBody* rigidBody = SetRB(
 			sphereCollisionShape,
