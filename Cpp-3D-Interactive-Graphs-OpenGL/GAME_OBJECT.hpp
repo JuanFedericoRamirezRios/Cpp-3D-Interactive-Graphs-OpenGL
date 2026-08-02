@@ -441,6 +441,25 @@ public:
 		glBindVertexArray(0);
 		glUseProgram(0);
 	}
-	
-	
 };
+
+bool Check2RBcol(btDynamicsWorld* dynamicsWorld, std::string* arrayCols) {
+	int numCollisions = dynamicsWorld->getDispatcher()->getNumManifolds();
+	bool collision = false;
+	for (int n = 0; n < numCollisions; n++) { // View every collision at same time.
+		btPersistentManifold* contactManifold = dynamicsWorld->getDispatcher()->getManifoldByIndexInternal(n);
+		int numContacts = contactManifold->getNumContacts(); // Number of objects in contact.
+		if (numContacts > 0) {
+			const btCollisionObject* bodyA = contactManifold->getBody0();
+			const btCollisionObject* bodyB = contactManifold->getBody1();
+
+			GAME_OBJECT* meshA = (GAME_OBJECT*)bodyA->getUserPointer();
+			GAME_OBJECT* meshB = (GAME_OBJECT*)bodyB->getUserPointer();
+			arrayCols[0] = meshA->name;
+			arrayCols[1] = meshB->name;
+			//std::cout << arrayCols[0] << " " << arrayCols[1] << std::endl;
+			collision = true;
+		}	
+	}
+	return collision;
+}

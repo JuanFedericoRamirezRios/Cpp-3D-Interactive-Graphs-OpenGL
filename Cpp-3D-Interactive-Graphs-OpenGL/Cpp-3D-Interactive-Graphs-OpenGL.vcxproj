@@ -137,9 +137,7 @@
     <ClInclude Include="GAME_OBJECT.hpp" />
     <ClInclude Include="OGL_UTILITIES.hpp" />
     <ClInclude Include="POINT_LIGHT.hpp" />
-    <ClInclude Include="LIGHT_RENDER.hpp" />
     <ClInclude Include="MESH_LOADER.hpp" />
-    <ClInclude Include="MESH_RENDER.hpp" />
     <ClInclude Include="SHADER_LOADER.hpp" />
     <ClInclude Include="TEXTURE_LOADER.hpp" />
     <ClInclude Include="TEXT_RENDER.hpp" />

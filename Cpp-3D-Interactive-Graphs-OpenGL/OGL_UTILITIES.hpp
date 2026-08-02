@@ -20,14 +20,11 @@ GLM 1.0.3
 #include "POINT_LIGHT.hpp"
 #include "MESH_LOADER.hpp"
 
-
-
-
 using namespace glm;
 
 class OGL_FEDE {
 private:
-
+	
 public:
 	static void GlfwError(int id, const char* description) {
 		std::cerr << "GLFW Error: " << description << std::endl;
@@ -119,8 +116,7 @@ public:
 			restitution,
 			friction
 		);
-
 		return rigidBody;
 	}
-
+	
 };

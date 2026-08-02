@@ -12,11 +12,9 @@ GLM 1.0.3
 #include "SHADER_LOADER.hpp"
 #include "CAMERA.hpp"
 #include "POINT_LIGHT.hpp"
-
 #include "GAME_OBJECT.hpp"
 #include "TEXTURE_LOADER.hpp"
 #include "TEXT_RENDER.hpp"
-
 #include "OGL_UTILITIES.hpp"
 
 using namespace glm;
@@ -42,12 +40,137 @@ bool grounded = false;
 bool gameOver = true;
 int score = 0;
 
+void UpdateKeyboard(GLFWwindow* window, int key, int scancode, int action, int mods);
 void InitGame();
-
+void Script(btDynamicsWorld* dynamicsWorld, btScalar dt);
+void AddGameObjects();
 void RenderScene(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
 
 static void GlfwError(int id, const char* description) {
 	std::cerr << "GLFW Error: " << description << std::endl;
+}
+
+int main(int argc, char** argv) {
+	GLFWwindow* window = OGL_FEDE::InitWindow(800, 600, "Game example");
+
+	// Capture keyboard events
+	glfwSetKeyCallback(window, UpdateKeyboard);
+
+	InitGame();
+	AddGameObjects();
+
+
+	auto t0 = std::chrono::high_resolution_clock::now();
+		
+	while (!glfwWindowShouldClose(window)) {
+		auto t = std::chrono::high_resolution_clock::now();
+		float dt = std::chrono::duration<float,	std::chrono::seconds::period> (
+				t - t0
+			).count();
+		dynamicsWorld->stepSimulation(dt);
+		
+		// Render the scene
+		glfwSwapBuffers(window); // Update frames in the buffer by OpenGL. 
+		RenderScene(1.0, 1.0, 0.0, 1.0); // Background: Yellow
+		glfwPollEvents(); // Check for any events. Ex. close window.
+
+		t0 = t;		
+	}
+	glfwTerminate();
+
+	delete camera;
+	delete pointLight;
+
+	return 0;
+
+}
+void UpdateKeyboard(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+		glfwSetWindowShouldClose(window, true);
+	}
+	if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
+		if (gameOver)
+			gameOver = false;
+		else {
+			if (grounded == true) {
+				grounded = false;
+				uvSphere->rigidBody->applyImpulse(
+					btVector3(0.0f, 150.0f, 0.0f), // impulse force: 100 in y.
+					btVector3(0.0f, 0.0f, 0.0f) // position from the center of mass where the impulse is applied -> can be rotation
+				);
+			}
+		}
+	}
+}
+void InitGame() {
+	glEnable(GL_DEPTH_TEST); // GL_DEPTH_TEST: Depth texting -> only the pixels in the front are drawn
+
+	// ******** Set shaders *********
+	SHADER_LOADER shaderLoader;
+	flatShaderProgram = shaderLoader.CreateProgram("Assets/Shaders/FLAT_MODEL.vs", "Assets/Shaders/FLAT_MODEL.fs");
+	textureShaderProgram = shaderLoader.CreateProgram("Assets/Shaders/TEXTURE_MODEL.vs", "Assets/Shaders/TEXTURE_MODEL.fs");
+	litTextureShaderProgram = shaderLoader.CreateProgram("Assets/Shaders/LIT_TEXTURE_MODEL.vs", "Assets/Shaders/LIT_TEXTURE_MODEL.fs");
+	textShaderProgram = shaderLoader.CreateProgram("Assets/Shaders/TEXT_MODEL.vs", "Assets/Shaders/TEXT_MODEL.fs");
+	
+	// ******** Set camera *********
+	camera = new CAMERA(45.0f, 800, 600, 0.1f, 100.0f, vec3(0.0f, 4.0f, 20.0f)); // 800x600: size of window
+
+	// ******** Point Light *********
+	pointLight = new POINT_LIGHT(vec3(0.0f, 10.0f, 0.0f), vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+	// ******** Texture loader *********
+	TEXTURE_LOADER textureLoader;
+	sphereTexture = textureLoader.GetTextureID("Assets/Textures/globe.jpg");
+	groundTexture = textureLoader.GetTextureID("Assets/Textures/ground.jpg");
+
+	// ******** Set score label *********
+	label = new TEXT_RENDER("Score: 0", "Assets/Fonts/gooddog.ttf", 64, vec3(1.0f, 0.0f, 0.0f), textShaderProgram); // Text height: 64
+	label->SetPosition(glm::vec2(320.0f, 500.0f));
+
+	// ******** Load physics *********
+	dynamicsWorld = OGL_FEDE::PhysicsWorld(btVector3(0.0f, -9.8f, 0.0f));
+
+	// ******** Load Script *********
+	dynamicsWorld->setInternalTickCallback(Script);
+}
+void Script(btDynamicsWorld* dynamicsWorld, btScalar dt) { // Custom update of dynamicsWorld (additional to physics).
+	if (!gameOver) {
+		btVector3 velocity(-15.0f, 0, 0);
+
+		//btTransform transEnemy = enemy->rigidBody->getWorldTransform(); // WorldMatrix*PosMatrix
+		btTransform transEnemy(enemy->rigidBody->getWorldTransform()); // WorldMatrix*PosMatrix
+		transEnemy.setOrigin(transEnemy.getOrigin() + velocity * dt);
+
+		// Check if enemy is on offScreen
+		if (transEnemy.getOrigin().x() <= -18.0f) {
+			transEnemy.setOrigin(btVector3(18, 1, 0)); // back to the right of the viewport
+
+			score++;
+			label->SetText("Score: " + std::to_string(score));
+		}
+		enemy->rigidBody->setWorldTransform(transEnemy);
+		enemy->rigidBody->getMotionState()->setWorldTransform(transEnemy);
+	}
+	// Check every collisions
+	grounded = false;
+
+	std::string namesCol[2] = { "","" };
+	if (Check2RBcol(dynamicsWorld, namesCol)) {
+		if ((namesCol[0] == "hero" && namesCol[1] == "enemy") ||
+			(namesCol[0] == "enemy" && namesCol[1] == "hero")) {
+			btTransform transEnemy(enemy->rigidBody->getWorldTransform());
+			transEnemy.setOrigin(btVector3(18, 1, 0)); // back to the right of the viewport
+			enemy->rigidBody->setWorldTransform(transEnemy);
+			enemy->rigidBody->getMotionState()->setWorldTransform(transEnemy);
+			gameOver = true;
+			score = 0;
+			label->SetText("Score: " + std::to_string(score));
+		}
+		if ((namesCol[0] == "hero" && namesCol[1] == "ground") || (namesCol[0] == "ground" && namesCol[1] == "hero")) {
+			grounded = true;
+		}
+	}
+
 }
 void AddGameObjects() {
 	// ******** Sphere *********
@@ -58,7 +181,7 @@ void AddGameObjects() {
 	//uvSphere->SetColor(flatShaderProgram, vec4(1.0f, 0.0f, 0.0f, 1.0f));
 	uvSphere->SetTexture(textureShaderProgram, sphereTexture);
 	//uvSphere->SetTextureLit(litTextureShaderProgram, sphereTexture, pointLight, 0.1f, 0.5f);
-	
+
 	uvSphere->SetSphereRB(1.0f, 13.0f);
 	uvSphere->rigidBody->setActivationState(DISABLE_DEACTIVATION); // We need to control the jump.
 	dynamicsWorld->addRigidBody(uvSphere->rigidBody);
@@ -98,161 +221,12 @@ void AddGameObjects() {
 	textureLitSph->SetTextureLit(litTextureShaderProgram, groundTexture, pointLight, 0.1f, 0.5f);
 
 }
-void Script(btDynamicsWorld* dynamicsWorld, btScalar dt) { // Custom update of dynamicsWorld (additional to physics).
-	if (!gameOver) {
-		// Get enemy transform
-		btTransform transformEnemy(enemy->rigidBody->getWorldTransform()); // WorldMatrix*PosMatrix
-
-		// Set enemy position
-		btVector3 velocity(-15.0f, 0, 0);
-		//btVector3 velocity(0.0f, 0, 0);
-		transformEnemy.setOrigin(transformEnemy.getOrigin() + velocity * dt);
-
-		// Check if enemy is on offScreen
-		if (transformEnemy.getOrigin().x() <= -18.0f) {
-			transformEnemy.setOrigin(btVector3(18, 1, 0)); // back to the right of the viewport
-			score++;
-			//printf("Score: %i\n", score);
-			label->SetText("Score: " + std::to_string(score));
-		}
-		enemy->rigidBody->setWorldTransform(transformEnemy);
-		enemy->rigidBody->getMotionState()->setWorldTransform(transformEnemy);
-	}
-	// Check every collisions
-	grounded = false;
-	int numCollisions = dynamicsWorld->getDispatcher()->getNumManifolds();
-	for (int n = 0; n < numCollisions; n++) {
-		btPersistentManifold* contactManifold = dynamicsWorld->getDispatcher()->getManifoldByIndexInternal(n);
-		int numContacts = contactManifold->getNumContacts(); // Number of objects in contact.
-		if (numContacts > 0) {
-			
-			const btCollisionObject* bodyA = contactManifold->getBody0();
-			const btCollisionObject* bodyB = contactManifold->getBody1();
-			GAME_OBJECT* meshA = (GAME_OBJECT*)bodyA->getUserPointer();
-			GAME_OBJECT* meshB = (GAME_OBJECT*)bodyB->getUserPointer();
-			
-			if ((meshA->name == "hero" && meshB->name == "enemy") || 
-			(meshA->name == "enemy" && meshB->name == "hero")) {
-				//printf("Collision: %s with %s \n", meshA->name, meshB->name);
-				if (meshB->name == "enemy") {
-					btTransform transEnemy(meshB->rigidBody->getWorldTransform());
-					transEnemy.setOrigin(btVector3(18, 1, 0)); // back to the right of the viewport
-					meshB->rigidBody->setWorldTransform(transEnemy);
-					meshB->rigidBody->getMotionState()->setWorldTransform(transEnemy);
-				} else { // If meshA is enemy
-					btTransform transEnemy(meshA->rigidBody->getWorldTransform());
-					transEnemy.setOrigin(btVector3(18, 1, 0)); // back to the right of the viewport
-					meshA->rigidBody->setWorldTransform(transEnemy);
-					meshA->rigidBody->getMotionState()->setWorldTransform(transEnemy);
-				}
-				gameOver = true;
-				score = 0;
-				label->SetText("Score: " + std::to_string(score));
-				//printf("Score: %i\n", score);
-			}
-			if ((meshA->name == "hero" && meshB->name == "ground") ||
-			(meshA->name == "ground" && meshB->name	== "hero")) {
-				grounded = true;
-				//printf("Collision: %s with %s \n", meshA->name, meshB->name);
-			}
-
-		}
-
-	}
-
-}
-void UpdateKeyboard(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-		glfwSetWindowShouldClose(window, true);
-	}
-	if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
-		if (gameOver)
-			gameOver = false;
-		else {
-			if (grounded == true) {
-				grounded = false;
-				uvSphere->rigidBody->applyImpulse(
-					btVector3(0.0f, 150.0f, 0.0f), // impulse force: 100 in y.
-					btVector3(0.0f, 0.0f, 0.0f) // position from the center of mass where the impulse is applied -> can be rotation
-				);
-			}
-		}
-	}
-}
-int main(int argc, char** argv) {
-	GLFWwindow* window = OGL_FEDE::InitWindow(800, 600, "Game example");
-
-	// Capture keyboard events
-	glfwSetKeyCallback(window, UpdateKeyboard);
-
-	InitGame();
-
-	auto t0 = std::chrono::high_resolution_clock::now();
-		
-	while (!glfwWindowShouldClose(window)) {
-		auto t = std::chrono::high_resolution_clock::now();
-		float dt = std::chrono::duration<float,	std::chrono::seconds::period> (
-				t - t0
-			).count();
-		dynamicsWorld->stepSimulation(dt);
-		
-		// Render the scene
-		glfwSwapBuffers(window); // Update frames in the buffer by OpenGL. 
-		RenderScene(1.0, 1.0, 0.0, 1.0); // Background: Yellow
-		glfwPollEvents(); // Check for any events. Ex. close window.
-
-		t0 = t;		
-	}
-	glfwTerminate();
-
-	delete camera;
-	delete pointLight;
-
-	return 0;
-
-}
-void InitGame() {
-	glEnable(GL_DEPTH_TEST); // GL_DEPTH_TEST: Depth texting -> only the pixels in the front are drawn
-
-	// ******** Set shaders *********
-	SHADER_LOADER shaderLoader;
-	flatShaderProgram = shaderLoader.CreateProgram("Assets/Shaders/FLAT_MODEL.vs", "Assets/Shaders/FLAT_MODEL.fs");
-	textureShaderProgram = shaderLoader.CreateProgram("Assets/Shaders/TEXTURE_MODEL.vs", "Assets/Shaders/TEXTURE_MODEL.fs");
-	litTextureShaderProgram = shaderLoader.CreateProgram("Assets/Shaders/LIT_TEXTURE_MODEL.vs", "Assets/Shaders/LIT_TEXTURE_MODEL.fs");
-	textShaderProgram = shaderLoader.CreateProgram("Assets/Shaders/TEXT_MODEL.vs", "Assets/Shaders/TEXT_MODEL.fs");
-	
-	// ******** Set camera *********
-	camera = new CAMERA(45.0f, 800, 600, 0.1f, 100.0f, vec3(0.0f, 4.0f, 20.0f)); // 800x600: size of window
-
-	// ******** Point Light *********
-	//pointLight = new LIGHT_RENDER(MESH_TYPE::Triangle, camera);
-	//pointLight->SetProgram(flatShaderProgram);
-	pointLight = new POINT_LIGHT(vec3(0.0f, 10.0f, 0.0f), vec4(1.0f, 1.0f, 1.0f, 1.0f));
-
-	// ******** Texture loader *********
-	TEXTURE_LOADER textureLoader;
-	sphereTexture = textureLoader.GetTextureID("Assets/Textures/globe.jpg");
-	groundTexture = textureLoader.GetTextureID("Assets/Textures/ground.jpg");
-
-	// ******** Set score label *********
-	label = new TEXT_RENDER("Score: 0", "Assets/Fonts/gooddog.ttf", 64, vec3(1.0f, 0.0f, 0.0f), textShaderProgram); // Text height: 64
-	label->SetPosition(glm::vec2(320.0f, 500.0f));
-
-	// ******** Load physics *********
-	dynamicsWorld = OGL_FEDE::PhysicsWorld(btVector3(0.0f, -9.8f, 0.0f));
-
-	// ******** Load Script *********
-	dynamicsWorld->setInternalTickCallback(Script);
-	
-	AddGameObjects();
-}
 void RenderScene(GLclampf red = 0.0, GLclampf green = 0.0, GLclampf blue = 0.0, GLclampf alpha = 1.0) { // Clampled 32 bits float, clamped to the range [0, 1]
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the color buffer and the depth buffer (if a pixel is behind another pixel, then that pixel will not be stored and show).
 	
 	glClearColor(red, green, blue, alpha); // Red.  The buffers need to be cleared in every frame.
 	
 	// Draw game objects
-	//pointLight->Draw();
 	uvSphere->Draw(camera);
 	ground->Draw(camera);
 	enemy->Draw(camera);
