@@ -134,6 +134,20 @@ void InitGame() {
 	dynamicsWorld->setInternalTickCallback(Script);
 }
 void Script(btDynamicsWorld* dynamicsWorld, btScalar dt) { // Custom update of dynamicsWorld (additional to physics).
+	vec3(0.0f, 4.0f, 20.0f);
+	float velAng = 2.0f * 3.14f / 20.0f; // rad/seg.
+	float radius = 20.0f;
+
+	vec3 posc = camera->GetPosition();
+	posc.y = 4.0f;
+	while ((posc.x * posc.x + posc.z * posc.z) > radius * radius) {
+		posc.x *= 0.99f;
+		posc.z *= 0.99f;
+	}
+
+	camera->SetPosition(posc + cross(posc, vec3(0.0f, velAng, 0.0f)*dt));
+	
+	
 	if (!gameOver) {
 		btVector3 velocity(-15.0f, 0, 0);
 

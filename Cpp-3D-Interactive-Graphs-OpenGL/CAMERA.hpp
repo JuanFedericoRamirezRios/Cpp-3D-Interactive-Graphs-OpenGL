@@ -17,15 +17,53 @@ class CAMERA {
 private:
 	mat4 viewMatrix;
 	mat4 projectionMatrix;
+	GLfloat FOV;
+	GLfloat width;
+	GLfloat height;
+	GLfloat nearPlane; 
+	GLfloat farPlane;
 	vec3 pos;
+	
 public:
-	CAMERA(GLfloat FOV, GLfloat width, GLfloat height, GLfloat nearPlane, GLfloat farPlane, vec3 pos) { // width and height of viewport.
-		this->pos = pos;
+	CAMERA(GLfloat FOV, GLfloat width, GLfloat height, GLfloat nearPlane, GLfloat farPlane, vec3 position) { // width and height of viewport.
+		this->FOV = FOV;
+		this->width = width;
+		this->height = height;
+		this->nearPlane = nearPlane;
+		this->farPlane = farPlane;
+		this->pos = position;
+		SetViewProjection();
+	}
+	void SetViewProjection() {
 		vec3 cameraFront = vec3(0.0f, 0.0f, 0.0f); // looking toward the center of the world coordinates
 		vec3 cameraUp = vec3(0.0f, 1.0f, 0.0f); // vector will always be pointing toward the positive y axis
 
-		viewMatrix = lookAt(this->pos, cameraFront, cameraUp);
+		viewMatrix = lookAt(pos, cameraFront, cameraUp);
 		projectionMatrix = perspective(FOV, width / height, nearPlane, farPlane); // width / height: Aspect ratio.
+	}
+	void SetFOV(GLfloat FOV) {
+		this->FOV = FOV;
+		SetViewProjection();
+	}
+	GLfloat GetFOV() {
+		return FOV;
+	}
+	void SetSize(GLfloat width, GLfloat height) {
+		this->width = width;
+		this->height = height;
+		SetViewProjection();
+	}
+	void SetPlanes(GLfloat nearPlane, GLfloat farPlane) {
+		this->nearPlane = nearPlane;
+		this->farPlane = farPlane;
+		SetViewProjection();
+	}
+	void SetPosition(vec3 position) {
+		pos = position;
+		SetViewProjection();
+	}
+	vec3 GetPosition() {
+		return pos;
 	}
 	~CAMERA() {
 
@@ -36,7 +74,5 @@ public:
 	mat4 GetProjectionMatrix() {
 		return projectionMatrix;
 	}
-	vec3 GetPosition() {
-		return pos;
-	}
+	
 };
