@@ -21,6 +21,7 @@ GLM 1.0.3
 #include <btBulletDynamicsCommon.h>
 
 using namespace glm;
+using namespace OGL_FEDE;
 
 enum RENDER_TYPE {
 	empty = 0,
@@ -126,7 +127,7 @@ public:
 		}
 		withRigidBody = true;
 
-		rigidBody = OGL_FEDE::SphereRB(
+		rigidBody = SphereRB(
 			radius,
 			btVector3(pos.x, pos.y, pos.z),
 			factorGravity,
@@ -150,7 +151,7 @@ public:
 		}
 		withRigidBody = true;
 
-		rigidBody = OGL_FEDE::BoxRB(
+		rigidBody = BoxRB(
 			btVector3(scale.x, scale.y, scale.z),
 			btVector3(pos.x, pos.y, pos.z),
 			factorGravity,

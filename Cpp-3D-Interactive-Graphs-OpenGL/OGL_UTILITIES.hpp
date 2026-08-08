@@ -22,14 +22,12 @@ GLM 1.0.3
 
 using namespace glm;
 
-class OGL_FEDE {
-private:
-	
-public:
-	static void GlfwError(int id, const char* description) {
+namespace OGL_FEDE {
+	void GlfwError(int id, const char* description) {
 		std::cerr << "GLFW Error: " << description << std::endl;
 	}
-	static GLFWwindow* InitWindow(int width, int height, const char* title = "Window") {
+
+	GLFWwindow* InitWindow(int width, int height, const char* title = "Window") {
 		glfwSetErrorCallback(&GlfwError);
 		glfwInit();
 		GLFWwindow* window = glfwCreateWindow(width, height, title, NULL, NULL);
@@ -37,7 +35,8 @@ public:
 		glewInit();
 		return window;
 	}
-	static btDiscreteDynamicsWorld* PhysicsWorld(btVector3 gravity) {
+
+	btDiscreteDynamicsWorld* PhysicsWorld(btVector3 gravity) {
 		btBroadphaseInterface* broadPhaseCollision = new btDbvtBroadphase(); // broadphase: Using bounding boxes of the objects
 		btDefaultCollisionConfiguration* defalultCollisionConf = new btDefaultCollisionConfiguration(); // Default memory.
 		btCollisionDispatcher* dispatcherCollision = new btCollisionDispatcher(defalultCollisionConf); // details of the collision detection, such as which object collided with which other object.
@@ -46,14 +45,14 @@ public:
 		dynamicsWorld->setGravity(gravity);
 		return dynamicsWorld;
 	}
-	static btRigidBody* SetRB(
-		btCollisionShape* collisionShape,
-		btVector3 position,
-		btScalar factorGravity,
-		btQuaternion rotation,
-		btVector3 inertia,
-		btScalar restitution,
-		btScalar friction
+	btRigidBody* SetRB(
+	btCollisionShape* collisionShape,
+	btVector3 position,
+	btScalar factorGravity,
+	btQuaternion rotation,
+	btVector3 inertia,
+	btScalar restitution,
+	btScalar friction
 	) {
 		collisionShape->calculateLocalInertia(factorGravity, inertia);
 		btDefaultMotionState* motionState = new btDefaultMotionState(
@@ -74,14 +73,14 @@ public:
 		return rigidBody;
 	}
 	
-	static btRigidBody* SphereRB(
-		btScalar radius = 1.0f, 
-		btVector3 position = btVector3(0.0f, 0.0f, 0.0f), 
-		btScalar factorGravity = 1.0f, 
-		btQuaternion rotation = btQuaternion(0, 0, 0, 1), // rotation: (0, 0, 0, 1) -> No rotation. See matrix rotation.
-		btVector3 inertia = btVector3(0, 0, 0),
-		btScalar restitution = 0.0f,
-		btScalar friction = 1.0f
+	btRigidBody* SphereRB(
+	btScalar radius = 1.0f, 
+	btVector3 position = btVector3(0.0f, 0.0f, 0.0f), 
+	btScalar factorGravity = 1.0f, 
+	btQuaternion rotation = btQuaternion(0, 0, 0, 1), // rotation: (0, 0, 0, 1) -> No rotation. See matrix rotation.
+	btVector3 inertia = btVector3(0, 0, 0),
+	btScalar restitution = 0.0f,
+	btScalar friction = 1.0f
 	) {
 		btCollisionShape* sphereCollisionShape = new btSphereShape(radius); // narrowphase: Collision at sphere shape level.
 
@@ -96,14 +95,15 @@ public:
 		);
 		return rigidBody;
 	}
-	static btRigidBody* BoxRB(
-		btVector3 size = btVector3(1.0f, 1.0f, 1.0f),
-		btVector3 position = btVector3(0.0f, 0.0f, 0.0f),
-		btScalar factorGravity = 1.0f,
-		btQuaternion rotation = btQuaternion(0, 0, 0, 1), // rotation: (0, 0, 0, 1) -> No rotation. See matrix rotation.
-		btVector3 inertia = btVector3(0, 0, 0),
-		btScalar restitution = 0.0f,
-		btScalar friction = 1.0f
+
+	btRigidBody* BoxRB(
+	btVector3 size = btVector3(1.0f, 1.0f, 1.0f),
+	btVector3 position = btVector3(0.0f, 0.0f, 0.0f),
+	btScalar factorGravity = 1.0f,
+	btQuaternion rotation = btQuaternion(0, 0, 0, 1), // rotation: (0, 0, 0, 1) -> No rotation. See matrix rotation.
+	btVector3 inertia = btVector3(0, 0, 0),
+	btScalar restitution = 0.0f,
+	btScalar friction = 1.0f
 	) {
 		btCollisionShape* boxCollisionShape = new btBoxShape(size); // narrowphase: Collision at box shape level. length, height, depth
 
@@ -119,4 +119,10 @@ public:
 		return rigidBody;
 	}
 	
+	vec3 RotateAroundY(float period, float radius, float posY, vec3 positionCurrent, btScalar dt) { // Period and dt in seconds.
+		float velAng = 2.0f * 3.14f / period; // rad/seg.
+		float ang = atan2(positionCurrent.z, positionCurrent.x) + velAng * dt;
+		return vec3(radius * cos(ang), posY, radius * sin(ang));
+	}
+
 };

@@ -18,6 +18,7 @@ GLM 1.0.3
 #include "OGL_UTILITIES.hpp"
 
 using namespace glm;
+using namespace OGL_FEDE;
 
 CAMERA* camera;
 POINT_LIGHT* pointLight;
@@ -51,7 +52,7 @@ static void GlfwError(int id, const char* description) {
 }
 
 int main(int argc, char** argv) {
-	GLFWwindow* window = OGL_FEDE::InitWindow(800, 600, "Game example");
+	GLFWwindow* window = InitWindow(800, 600, "Game example");
 
 	// Capture keyboard events
 	glfwSetKeyCallback(window, UpdateKeyboard);
@@ -128,26 +129,16 @@ void InitGame() {
 	label->SetPosition(glm::vec2(320.0f, 500.0f));
 
 	// ******** Load physics *********
-	dynamicsWorld = OGL_FEDE::PhysicsWorld(btVector3(0.0f, -9.8f, 0.0f));
+	dynamicsWorld = PhysicsWorld(btVector3(0.0f, -9.8f, 0.0f));
 
 	// ******** Load Script *********
 	dynamicsWorld->setInternalTickCallback(Script);
 }
+
 void Script(btDynamicsWorld* dynamicsWorld, btScalar dt) { // Custom update of dynamicsWorld (additional to physics).
-	vec3(0.0f, 4.0f, 20.0f);
-	float velAng = 2.0f * 3.14f / 20.0f; // rad/seg.
-	float radius = 20.0f;
-
-	vec3 posc = camera->GetPosition();
-	posc.y = 4.0f;
-	while ((posc.x * posc.x + posc.z * posc.z) > radius * radius) {
-		posc.x *= 0.99f;
-		posc.z *= 0.99f;
-	}
-
-	camera->SetPosition(posc + cross(posc, vec3(0.0f, velAng, 0.0f)*dt));
 	
-	
+	camera->SetPosition(RotateAroundY(1.0f, 20.0f, 4.0f, camera->GetPosition(), dt));
+
 	if (!gameOver) {
 		btVector3 velocity(-15.0f, 0, 0);
 
