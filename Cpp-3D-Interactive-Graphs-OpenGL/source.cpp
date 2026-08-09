@@ -137,7 +137,7 @@ void InitGame() {
 
 void Script(btDynamicsWorld* dynamicsWorld, btScalar dt) { // Custom update of dynamicsWorld (additional to physics).
 	
-	camera->SetPosition(RotateAroundY(1.0f, 20.0f, 4.0f, camera->GetPosition(), dt));
+	camera->SetPosition(TranslateAroundY(20.0f, 20.0f, 4.0f, camera->GetPosition(), dt));
 
 	if (!gameOver) {
 		btVector3 velocity(-15.0f, 0, 0);
@@ -219,7 +219,7 @@ void AddGameObjects() {
 
 	textureSph = new GAME_OBJECT("", vec3(2.0f, 7.0f, -5.0f), vec3(2.0f));
 	textureSph->SetVertex(MESH_TYPE::UVsphere);
-	textureSph->SetTexture(litTextureShaderProgram, groundTexture);
+	textureSph->SetTexture(textureShaderProgram, groundTexture);
 
 	textureLitSph = new GAME_OBJECT("", vec3(9.0f, 1.0f, 0), vec3(2.0f));
 	textureLitSph->SetVertex(MESH_TYPE::UVsphere);

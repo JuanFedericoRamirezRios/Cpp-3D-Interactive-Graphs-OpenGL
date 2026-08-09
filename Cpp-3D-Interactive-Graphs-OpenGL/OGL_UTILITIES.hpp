@@ -119,7 +119,7 @@ namespace OGL_FEDE {
 		return rigidBody;
 	}
 	
-	vec3 RotateAroundY(float period, float radius, float posY, vec3 positionCurrent, btScalar dt) { // Period and dt in seconds.
+	vec3 TranslateAroundY(float period, float radius, float posY, vec3 positionCurrent, btScalar dt) { // Period and dt in seconds.
 		float velAng = 2.0f * 3.14f / period; // rad/seg.
 		float ang = atan2(positionCurrent.z, positionCurrent.x) + velAng * dt;
 		return vec3(radius * cos(ang), posY, radius * sin(ang));
